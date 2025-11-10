@@ -1,71 +1,165 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRouter, useParams } from "next/navigation";
 import api from "@/lib/api";
 import toast from "react-hot-toast";
-import { Save, Printer } from "lucide-react";
+import { Save, Printer, Plus, X } from "lucide-react";
+import MedicineSearchModal from "@/components/MedicineSearchModal";
+import DiagnosisAutoComplete from "@/components/DiagnosisAutoComplete";
+import ChiefComplaintModal from "@/components/ChiefComplaintModal";
+import HistoryModal from "@/components/HistoryModal";
+import AdviceModal from "@/components/AdviceModal";
+import InvestigationModal from "@/components/InvestigationModal";
+import ProfileDropdown from "@/components/ProfileDropdown";
+
+type Errors = Record<string, string>;
+
+interface MedicineItem {
+  medicine: string;
+  schedule: string;
+  duration: string;
+  note: string;
+}
+
+interface InvestigationItem {
+  test: string;
+  remark: string;
+}
 
 export default function EditPrescriptionPage() {
   const { isAuthenticated, loading } = useAuth();
   const router = useRouter();
   const params = useParams();
 
-  // Form state
+  // Core form data matching the create template
   const [formData, setFormData] = useState({
     prescriptionDate: "",
     patientName: "",
     patientAge: "",
     patientGender: "M",
-    chiefComplaint: "",
-    history: "",
-    onExamination: "",
     diagnosis: "",
-    medicines: "",
-    advice: "",
     nextVisitDate: "",
   });
 
-  const [errors, setErrors] = useState<Record<string, string>>({});
-  const [isLoading, setIsLoading] = useState(true);
+  const [medicineList, setMedicineList] = useState<MedicineItem[]>([]);
+  const [chiefComplaintList, setChiefComplaintList] = useState<string[]>([]);
+  const [historyList, setHistoryList] = useState<string[]>([]);
+  const [investigationList, setInvestigationList] = useState<
+    InvestigationItem[]
+  >([]);
+  const [adviceList, setAdviceList] = useState<string[]>([]);
 
-  useEffect(() => {
-    if (!loading && !isAuthenticated) {
-      router.push("/login");
-    } else if (params.id) {
-      fetchPrescription();
-    }
-  }, [isAuthenticated, loading, params.id]);
+  const [showMedicineModal, setShowMedicineModal] = useState(false);
+  const [showComplaintModal, setShowComplaintModal] = useState(false);
+  const [showHistoryModal, setShowHistoryModal] = useState(false);
+  const [showInvestigationModal, setShowInvestigationModal] = useState(false);
+  const [showAdviceModal, setShowAdviceModal] = useState(false);
 
-  const fetchPrescription = async () => {
-    try {
-      const response = await api.get(`/prescriptions/${params.id}`);
-      const data = response.data.data;
+  const [errors, setErrors] = useState<Errors>({});
+  const [initialLoading, setInitialLoading] = useState(true);
 
-      setFormData({
-        prescriptionDate: data.visit || "",
-        patientName: data.name || "",
-        patientAge: data.patientAge?.toString() || "",
-        patientGender: data.gender || "M",
-        chiefComplaint: data.complaint || "",
-        history: data.history || "",
-        onExamination: data.onExamination || "",
-        diagnosis: data.diagnosis || "",
-        medicines: data.medicine || "",
-        advice: data.advice || "",
-        nextVisitDate: data.nextVisit || "",
-      });
-    } catch (error) {
-      console.error("Error fetching prescription:", error);
-      toast.error("Failed to load prescription");
-    } finally {
-      setIsLoading(false);
-    }
+  // Helpers to parse text blobs from existing prescription
+  const stripBullet = (line: string) =>
+    line
+      .replace(/^\s*[•\-*]\s*/, "")
+      .replace(/^\s*\d+[\)\.|-]?\s*/, "")
+      .trim();
+
+  const parseLines = (text?: string | null): string[] =>
+    (text || "")
+      .split(/\r?\n+/)
+      .map((l) => stripBullet(l))
+      .filter((l) => l.length > 0);
+
+  const parseMedicines = (text?: string | null): MedicineItem[] => {
+    const lines = (text || "").split(/\r?\n+/).map((l) => l.trim());
+    return lines
+      .map((line) => {
+        const cleaned = stripBullet(line);
+        const [left, right] = cleaned.split(/\s-\s(.+)/); // split on " - " first occurrence
+        const medicine = (left || cleaned).trim();
+        const note = (right || "").trim();
+        if (!medicine) return null;
+        return { medicine, schedule: "", duration: "", note } as MedicineItem;
+      })
+      .filter(Boolean) as MedicineItem[];
   };
 
+  const parseInvestigations = (text?: string | null): InvestigationItem[] => {
+    return parseLines(text).map((line) => {
+      const [test, remark] = line.split(/\s-\s(.+)/);
+      return { test: (test || line).trim(), remark: (remark || "").trim() };
+    });
+  };
+
+  useEffect(() => {
+    if (loading) return;
+    if (!isAuthenticated) {
+      router.push("/login");
+      return;
+    }
+    const idStr = (params?.id as string) || "";
+    if (!idStr) return;
+
+    const load = async () => {
+      try {
+        const res = await api.get("/API/v1/prescription");
+        const list = res.data || [];
+        const pid = Number(idStr);
+        const p = list.find((x: any) => x.prescriptionId === pid);
+        if (!p) {
+          toast.error("Prescription not found");
+          router.push("/prescriptions");
+          return;
+        }
+
+        setFormData({
+          prescriptionDate: p.visit || "",
+          patientName: p.name || "",
+          patientAge: (p.patientAge ?? "").toString(),
+          patientGender: p.gender || "M",
+          diagnosis: p.diagnosis || "",
+          nextVisitDate: p.nextVisit || "",
+        });
+
+        setMedicineList(parseMedicines(p.medicine));
+        setChiefComplaintList(parseLines(p.complaint));
+        setHistoryList(parseLines(p.history));
+        setInvestigationList(parseInvestigations(p.investigation));
+        setAdviceList(parseLines(p.advice));
+      } catch (e) {
+        console.error(e);
+        toast.error("Failed to load prescription");
+      } finally {
+        setInitialLoading(false);
+      }
+    };
+
+    load();
+  }, [loading, isAuthenticated, params, router]);
+
+  if (loading || initialLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        Loading...
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return null;
+  }
+
   const validateForm = () => {
-    const newErrors: Record<string, string> = {};
+    const newErrors: Errors = {};
+
+    if (!formData.prescriptionDate) {
+      newErrors.prescriptionDate = "Prescription date is required";
+    } else if (isNaN(new Date(formData.prescriptionDate).getTime())) {
+      newErrors.prescriptionDate = "Please enter a valid date";
+    }
 
     if (!formData.patientName.trim()) {
       newErrors.patientName = "Patient name is required";
@@ -74,8 +168,8 @@ export default function EditPrescriptionPage() {
     if (!formData.patientAge.trim()) {
       newErrors.patientAge = "Patient age is required";
     } else {
-      const age = parseInt(formData.patientAge);
-      if (isNaN(age) || age < 0 || age > 150) {
+      const age = Number(formData.patientAge);
+      if (!Number.isInteger(age) || age < 0 || age > 150) {
         newErrors.patientAge = "Please enter a valid age (0-150)";
       }
     }
@@ -84,20 +178,72 @@ export default function EditPrescriptionPage() {
       newErrors.patientGender = "Gender is required";
     }
 
-    if (!formData.prescriptionDate) {
-      newErrors.prescriptionDate = "Prescription date is required";
-    }
-
-    if (formData.nextVisitDate) {
-      const nextDate = new Date(formData.nextVisitDate);
-      if (isNaN(nextDate.getTime())) {
-        newErrors.nextVisitDate = "Please enter a valid date";
-      }
+    if (
+      formData.nextVisitDate &&
+      isNaN(new Date(formData.nextVisitDate).getTime())
+    ) {
+      newErrors.nextVisitDate = "Please enter a valid date";
     }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
+
+  const handleAddMedicine = (item: MedicineItem) => {
+    setMedicineList((prev) => [...prev, item]);
+  };
+
+  const handleRemoveMedicine = (index: number) => {
+    setMedicineList((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const handleAddComplaint = (complaint: string) => {
+    setChiefComplaintList((prev) => [...prev, complaint]);
+  };
+
+  const handleRemoveComplaint = (index: number) => {
+    setChiefComplaintList((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const handleAddHistory = (history: string) => {
+    setHistoryList((prev) => [...prev, history]);
+  };
+
+  const handleRemoveHistory = (index: number) => {
+    setHistoryList((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const handleAddInvestigation = (item: InvestigationItem) => {
+    setInvestigationList((prev) => [...prev, item]);
+  };
+
+  const handleRemoveInvestigation = (index: number) => {
+    setInvestigationList((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const handleAddAdvice = (advice: string) => {
+    setAdviceList((prev) => [...prev, advice]);
+  };
+
+  const handleRemoveAdvice = (index: number) => {
+    setAdviceList((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const formatMedicinesForSubmit = () => {
+    return medicineList
+      .map((item, idx) => `${idx + 1}) ${item.medicine} - ${item.note}`)
+      .join("\n");
+  };
+
+  const joinBullets = (items: string[]) =>
+    items.map((s) => (s.startsWith("•") ? s : `• ${s}`)).join("\n");
+
+  const joinInvestigations = (items: InvestigationItem[]) =>
+    items
+      .map((it) =>
+        `• ${it.test}${it.remark ? ` - ${it.remark}` : ""}`
+      )
+      .join("\n");
 
   const handleSubmit = async (print = false) => {
     if (!validateForm()) {
@@ -109,16 +255,17 @@ export default function EditPrescriptionPage() {
       const payload = {
         prescriptionDate: formData.prescriptionDate,
         patientName: formData.patientName,
-        patientAge: parseInt(formData.patientAge),
+        patientAge: Number(formData.patientAge),
         patientGender: formData.patientGender,
-        chiefComplaint: formData.chiefComplaint,
-        history: formData.history,
-        onExamination: formData.onExamination,
-        diagnosis: formData.diagnosis,
-        medicines: formData.medicines,
-        advice: formData.advice,
+        diagnosis: formData.diagnosis || "",
+        medicines: formatMedicinesForSubmit(),
         nextVisitDate: formData.nextVisitDate || null,
-      };
+        // Additional editable sections included for completeness
+        chiefComplaint: joinBullets(chiefComplaintList) || null,
+        history: joinBullets(historyList) || null,
+        investigation: joinInvestigations(investigationList) || null,
+        advice: joinBullets(adviceList) || null,
+      } as any;
 
       await api.put(`/API/v1/prescription/${params.id}`, payload);
       toast.success("Prescription updated successfully!");
@@ -129,8 +276,14 @@ export default function EditPrescriptionPage() {
         router.push("/prescriptions");
       }
     } catch (error: any) {
-      console.error("Update error:", error);
-      if (error.response?.data?.message) {
+      if (error.response?.status === 400 && error.response?.data) {
+        const backendErrors = error.response.data as Errors;
+        setErrors(backendErrors);
+        const firstMsg = Object.values(backendErrors)[0];
+        toast.error(
+          typeof firstMsg === "string" ? firstMsg : "Validation failed"
+        );
+      } else if (error.response?.data?.message) {
         toast.error(error.response.data.message);
       } else {
         toast.error("Failed to update prescription");
@@ -145,268 +298,437 @@ export default function EditPrescriptionPage() {
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
-    if (errors[name]) {
-      setErrors((prev) => ({ ...prev, [name]: "" }));
-    }
+    if ((errors as any)[name]) setErrors((prev) => ({ ...prev, [name]: "" }));
   };
 
-  if (loading || isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        Loading...
-      </div>
-    );
-  }
-
-  if (!isAuthenticated) {
-    return null;
-  }
-
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-gradient-to-r from-blue-600 to-blue-700 text-white py-4 shadow-md">
-        <div className="max-w-7xl mx-auto px-4">
+    <div className="min-h-screen bg-gray-100">
+      {/* Dashboard Button */}
+      <div className="absolute top-4 left-4 z-20">
+        <button
+          onClick={() => router.push("/dashboard")}
+          className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg shadow-md font-medium transition-colors"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+            <polyline points="9 22 9 12 15 12 15 22" />
+          </svg>
+          Dashboard
+        </button>
+      </div>
+
+      {/* Profile Dropdown */}
+      <div className="absolute top-4 right-4 z-20">
+        <ProfileDropdown />
+      </div>
+
+      {/* Header - Doctor Info (English Left, Bangla Right) */}
+      <header className="bg-white border-b-2 border-gray-800">
+        <div className="max-w-7xl mx-auto px-6 py-3 flex justify-between items-start">
           <div>
-            <h1 className="text-2xl font-bold">DR. ABU NOYIM MOHAMMAD</h1>
-            <p className="text-sm opacity-90">
-              MBBS,DEM (Endocrinology & Metabolism)
+            <h1 className="text-xl font-bold text-green-700">
+              DR. ABU NOYIM MOHAMMAD
+            </h1>
+            <p className="text-sm text-gray-700">
+              MBBS, DEM (Endocrinology & Metabolism)
+            </p>
+          </div>
+          <div className="text-right">
+            <h1 className="text-xl font-bold text-green-700">
+              ডা.আবু নঈম মোহাম্মদ
+            </h1>
+            <p className="text-sm text-gray-700">
+              এমবিবিএস, ডিইএম(এন্ডোক্রাইনোলজি & মেটাবলিজম)
             </p>
           </div>
         </div>
       </header>
 
-      {/* Main Form */}
-      <div className="max-w-6xl mx-auto px-4 py-8">
-        <div className="bg-white rounded-lg shadow-lg p-6">
-          <h2 className="text-2xl font-bold text-gray-800 mb-6">
-            Edit Prescription
-          </h2>
+      {/* Single Line - Patient Info */}
+      <div className="bg-white border-b border-gray-400">
+        <div className="max-w-7xl mx-auto px-6 py-3">
+          <div className="grid grid-cols-5 gap-4 items-center">
+            <div className="col-span-2 flex items-center gap-2">
+              <label className="font-medium text-gray-700">Name:</label>
+              <input
+                type="text"
+                name="patientName"
+                value={formData.patientName}
+                onChange={handleChange}
+                placeholder="Patient Name"
+                className={`flex-1 px-2 py-1 border-b-2 border-gray-300 focus:border-blue-500 outline-none ${
+                  errors.patientName ? "border-red-500" : ""
+                }`}
+              />
+            </div>
+            <div className="flex items-center gap-2">
+              <label className="font-medium text-gray-700">Date:</label>
+              <input
+                type="date"
+                name="prescriptionDate"
+                value={formData.prescriptionDate}
+                onChange={handleChange}
+                className={`flex-1 px-2 py-1 border-b-2 border-gray-300 focus:border-blue-500 outline-none ${
+                  errors.prescriptionDate ? "border-red-500" : ""
+                }`}
+              />
+            </div>
+            <div className="flex items-center gap-2">
+              <label className="font-medium text-gray-700">Age:</label>
+              <input
+                type="number"
+                name="patientAge"
+                value={formData.patientAge}
+                onChange={handleChange}
+                placeholder="Age"
+                min="0"
+                max="150"
+                className={`flex-1 px-2 py-1 border-b-2 border-gray-300 focus:border-blue-500 outline-none w-20 ${
+                  errors.patientAge ? "border-red-500" : ""
+                }`}
+              />
+            </div>
+            <div className="flex items-center gap-2">
+              <label className="font-medium text-gray-700">Gender:</label>
+              <select
+                name="patientGender"
+                value={formData.patientGender}
+                onChange={handleChange}
+                className={`flex-1 px-2 py-1 border-b-2 border-gray-300 focus:border-blue-500 outline-none ${
+                  errors.patientGender ? "border-red-500" : ""
+                }`}
+              >
+                <option value="M">M</option>
+                <option value="F">F</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+          </div>
+          {Object.keys(errors).length > 0 && (
+            <div className="mt-2 text-red-500 text-sm">
+              {Object.values(errors).map((err, i) => (
+                <div key={i}>• {err}</div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
 
-          <div className="space-y-6">
-            {/* Prescription Date & Patient Info */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      {/* Two Column Layout */}
+      <div className="max-w-7xl mx-auto px-6 py-4 pb-24">
+        <div className="bg-white border border-gray-300 rounded-lg shadow-sm">
+          <div className="grid grid-cols-3 min-h-[600px]">
+            {/* Left Column */}
+            <div className="col-span-1 border-r border-gray-300 p-4 space-y-4">
+              {/* Chief Complaint */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Prescription Date <span className="text-red-500">*</span>
+                <div className="flex items-center justify-between mb-2">
+                  <label className="font-semibold text-gray-800">
+                    Chief Complaint
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => setShowComplaintModal(true)}
+                    className="text-blue-600 hover:text-blue-700"
+                  >
+                    <Plus size={20} />
+                  </button>
+                </div>
+                <div className="space-y-1 min-h-[60px] border border-gray-200 rounded p-2 bg-gray-50">
+                  {chiefComplaintList.length === 0 ? (
+                    <div className="text-center text-gray-400 text-sm py-2">
+                      Click + to add
+                    </div>
+                  ) : (
+                    chiefComplaintList.map((complaint, idx) => (
+                      <div
+                        key={idx}
+                        className="flex items-center justify-between bg-white px-2 py-1 rounded border border-gray-200"
+                      >
+                        <span className="text-sm text-gray-800">
+                          • {complaint}
+                        </span>
+                        <button
+                          onClick={() => handleRemoveComplaint(idx)}
+                          className="text-red-500 hover:text-red-700"
+                        >
+                          <X size={14} />
+                        </button>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+
+              {/* History */}
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <label className="font-semibold text-gray-800">History</label>
+                  <button
+                    type="button"
+                    onClick={() => setShowHistoryModal(true)}
+                    className="text-blue-600 hover:text-blue-700"
+                  >
+                    <Plus size={20} />
+                  </button>
+                </div>
+                <div className="space-y-1 min-h-[60px] border border-gray-200 rounded p-2 bg-gray-50">
+                  {historyList.length === 0 ? (
+                    <div className="text-center text-gray-400 text-sm py-2">
+                      Click + to add
+                    </div>
+                  ) : (
+                    historyList.map((history, idx) => (
+                      <div
+                        key={idx}
+                        className="flex items-center justify-between bg-white px-2 py-1 rounded border border-gray-200"
+                      >
+                        <span className="text-sm text-gray-800">• {history}</span>
+                        <button
+                          onClick={() => handleRemoveHistory(idx)}
+                          className="text-red-500 hover:text-red-700"
+                        >
+                          <X size={14} />
+                        </button>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+
+              {/* Investigation */}
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <label className="font-semibold text-gray-800">
+                    Diagnosis
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => setShowInvestigationModal(true)}
+                    className="text-blue-600 hover:text-blue-700"
+                  >
+                    <Plus size={20} />
+                  </button>
+                </div>
+                <div className="space-y-1 min-h-[80px] border border-gray-200 rounded p-2 bg-gray-50">
+                  {investigationList.length === 0 ? (
+                    <div className="text-center text-gray-400 text-sm py-2">
+                      Click + to add
+                    </div>
+                  ) : (
+                    investigationList.map((item, idx) => (
+                      <div
+                        key={idx}
+                        className="flex items-center justify-between bg-white px-2 py-1 rounded border border-gray-200"
+                      >
+                        <div className="flex-1">
+                          <span className="text-sm font-medium text-gray-800">
+                            • {item.test}
+                          </span>
+                          {item.remark && (
+                            <span className="text-sm text-gray-600">
+                              {" "}- {item.remark}
+                            </span>
+                          )}
+                        </div>
+                        <button
+                          onClick={() => handleRemoveInvestigation(idx)}
+                          className="text-red-500 hover:text-red-700"
+                        >
+                          <X size={14} />
+                        </button>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+
+              {/* Diagnosis free text */}
+              <div>
+                <DiagnosisAutoComplete
+                  value={formData.diagnosis}
+                  onChange={(value) =>
+                    setFormData((prev) => ({ ...prev, diagnosis: value }))
+                  }
+                  label="Diagnosis"
+                />
+              </div>
+            </div>
+
+            {/* Right Column - Rx, Advice, Follow Up, Special Note */}
+            <div className="col-span-2 p-4 space-y-4">
+              {/* Rx Section */}
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-3">
+                    <span className="rx-badge">℞</span>
+                    <h3 className="font-semibold text-lg text-gray-800">Rx</h3>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setShowMedicineModal(true)}
+                    className="flex items-center gap-1 px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded text-sm font-medium"
+                  >
+                    <Plus size={16} />
+                    Add Medicine
+                  </button>
+                </div>
+
+                {/* Medicine List */}
+                <div className="space-y-2 mb-4 min-h-[300px] border border-gray-200 rounded p-3 bg-gray-50">
+                  {medicineList.length === 0 ? (
+                    <div className="text-center text-gray-400 py-8">
+                      No medicines added. Click "Add Medicine" to add.
+                    </div>
+                  ) : (
+                    medicineList.map((item, idx) => (
+                      <div
+                        key={idx}
+                        className="flex items-start justify-between bg-white p-2 rounded border border-gray-200"
+                      >
+                        <div className="flex-1">
+                          <div className="font-medium text-gray-800">
+                            {idx + 1}. {item.medicine}
+                          </div>
+                          <div className="text-sm text-gray-600">{item.note}</div>
+                        </div>
+                        <button
+                          onClick={() => handleRemoveMedicine(idx)}
+                          className="text-red-500 hover:text-red-700 p-1"
+                        >
+                          <X size={18} />
+                        </button>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+
+              {/* Advices */}
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <label className="font-semibold text-gray-800">Advices</label>
+                  <button
+                    type="button"
+                    onClick={() => setShowAdviceModal(true)}
+                    className="text-blue-600 hover:text-blue-700"
+                  >
+                    <Plus size={20} />
+                  </button>
+                </div>
+                <div className="space-y-1 min-h-[100px] border border-gray-200 rounded p-2 bg-gray-50">
+                  {adviceList.length === 0 ? (
+                    <div className="text-center text-gray-400 text-sm py-2">
+                      Click + to add advice
+                    </div>
+                  ) : (
+                    adviceList.map((advice, idx) => (
+                      <div
+                        key={idx}
+                        className="flex items-center justify-between bg-white px-2 py-1 rounded border border-gray-200"
+                      >
+                        <span className="text-sm text-gray-800">• {advice}</span>
+                        <button
+                          onClick={() => handleRemoveAdvice(idx)}
+                          className="text-red-500 hover:text-red-700"
+                        >
+                          <X size={14} />
+                        </button>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+
+              {/* Follow Up */}
+              <div>
+                <label className="font-semibold text-gray-800 mb-2 block">
+                  Follow Up +
                 </label>
                 <input
                   type="date"
-                  name="prescriptionDate"
-                  value={formData.prescriptionDate}
+                  name="nextVisitDate"
+                  value={formData.nextVisitDate}
                   onChange={handleChange}
-                  className={`input w-full ${
-                    errors.prescriptionDate ? "border-red-500" : ""
+                  className={`w-full p-2 border border-gray-300 rounded text-sm focus:ring-1 focus:ring-blue-500 outline-none ${
+                    errors.nextVisitDate ? "border-red-500" : ""
                   }`}
                 />
-                {errors.prescriptionDate && (
-                  <p className="text-red-500 text-sm mt-1">
-                    {errors.prescriptionDate}
-                  </p>
-                )}
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Patient Name <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  name="patientName"
-                  value={formData.patientName}
-                  onChange={handleChange}
-                  placeholder="Enter patient name"
-                  className={`input w-full ${
-                    errors.patientName ? "border-red-500" : ""
-                  }`}
-                />
-                {errors.patientName && (
-                  <p className="text-red-500 text-sm mt-1">
-                    {errors.patientName}
-                  </p>
-                )}
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Age <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="number"
-                  name="patientAge"
-                  value={formData.patientAge}
-                  onChange={handleChange}
-                  placeholder="Enter age"
-                  min="0"
-                  max="150"
-                  className={`input w-full ${
-                    errors.patientAge ? "border-red-500" : ""
-                  }`}
-                />
-                {errors.patientAge && (
-                  <p className="text-red-500 text-sm mt-1">
-                    {errors.patientAge}
-                  </p>
-                )}
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Gender <span className="text-red-500">*</span>
-                </label>
-                <select
-                  name="patientGender"
-                  value={formData.patientGender}
-                  onChange={handleChange}
-                  className={`input w-full ${
-                    errors.patientGender ? "border-red-500" : ""
-                  }`}
-                >
-                  <option value="M">Male</option>
-                  <option value="F">Female</option>
-                  <option value="Other">Other</option>
-                </select>
-                {errors.patientGender && (
-                  <p className="text-red-500 text-sm mt-1">
-                    {errors.patientGender}
-                  </p>
+                {errors.nextVisitDate && (
+                  <p className="error-text">{errors.nextVisitDate}</p>
                 )}
               </div>
             </div>
-
-            {/* Chief Complaint */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Chief Complaint
-              </label>
-              <textarea
-                name="chiefComplaint"
-                value={formData.chiefComplaint}
-                onChange={handleChange}
-                placeholder="Enter chief complaint..."
-                rows={3}
-                className="input w-full"
-              />
-            </div>
-
-            {/* History */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                History
-              </label>
-              <textarea
-                name="history"
-                value={formData.history}
-                onChange={handleChange}
-                placeholder="Enter patient history..."
-                rows={3}
-                className="input w-full"
-              />
-            </div>
-
-            {/* On Examination */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                On Examination
-              </label>
-              <textarea
-                name="onExamination"
-                value={formData.onExamination}
-                onChange={handleChange}
-                placeholder="Enter examination findings..."
-                rows={3}
-                className="input w-full"
-              />
-            </div>
-
-            {/* Diagnosis */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Diagnosis
-              </label>
-              <textarea
-                name="diagnosis"
-                value={formData.diagnosis}
-                onChange={handleChange}
-                placeholder="Enter diagnosis..."
-                rows={3}
-                className="input w-full"
-              />
-            </div>
-
-            {/* Medicines */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Medicines
-              </label>
-              <textarea
-                name="medicines"
-                value={formData.medicines}
-                onChange={handleChange}
-                placeholder="Enter medicines..."
-                rows={4}
-                className="input w-full"
-              />
-            </div>
-
-            {/* Advice */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Advice
-              </label>
-              <textarea
-                name="advice"
-                value={formData.advice}
-                onChange={handleChange}
-                placeholder="Enter medical advice..."
-                rows={3}
-                className="input w-full"
-              />
-            </div>
-
-            {/* Next Visit Date */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Next Visit Date (Optional)
-              </label>
-              <input
-                type="date"
-                name="nextVisitDate"
-                value={formData.nextVisitDate}
-                onChange={handleChange}
-                className={`input w-full ${
-                  errors.nextVisitDate ? "border-red-500" : ""
-                }`}
-              />
-              {errors.nextVisitDate && (
-                <p className="text-red-500 text-sm mt-1">
-                  {errors.nextVisitDate}
-                </p>
-              )}
-            </div>
-          </div>
-
-          {/* Action Buttons */}
-          <div className="grid grid-cols-2 gap-4 mt-8">
-            <button
-              type="button"
-              onClick={() => handleSubmit(false)}
-              className="bg-green-500 hover:bg-green-600 text-white py-3 rounded-lg font-semibold flex items-center justify-center gap-2 shadow-lg transition-colors"
-            >
-              <Save size={20} />
-              Update
-            </button>
-            <button
-              type="button"
-              onClick={() => handleSubmit(true)}
-              className="bg-teal-500 hover:bg-teal-600 text-white py-3 rounded-lg font-semibold flex items-center justify-center gap-2 shadow-lg transition-colors"
-            >
-              <Printer size={20} />
-              Update & Print
-            </button>
           </div>
         </div>
       </div>
+
+      {/* Fixed Bottom Buttons */}
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-300 shadow-lg z-10">
+        <div className="max-w-7xl mx-auto px-6 py-3 grid grid-cols-2 gap-4">
+          <button
+            type="button"
+            onClick={() => handleSubmit(false)}
+            className="bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg font-semibold flex items-center justify-center gap-2"
+          >
+            <Save size={20} />
+            Update
+          </button>
+          <button
+            type="button"
+            onClick={() => handleSubmit(true)}
+            className="bg-teal-600 hover:bg-teal-700 text-white py-3 rounded-lg font-semibold flex items-center justify-center gap-2"
+          >
+            <Printer size={20} />
+            Update & Print
+          </button>
+        </div>
+      </div>
+
+      {/* Medicine Modal */}
+      <MedicineSearchModal
+        isOpen={showMedicineModal}
+        onClose={() => setShowMedicineModal(false)}
+        onAdd={handleAddMedicine}
+      />
+
+      {/* Chief Complaint Modal */}
+      <ChiefComplaintModal
+        isOpen={showComplaintModal}
+        onClose={() => setShowComplaintModal(false)}
+        onAdd={handleAddComplaint}
+      />
+
+      {/* History Modal */}
+      <HistoryModal
+        isOpen={showHistoryModal}
+        onClose={() => setShowHistoryModal(false)}
+        onAdd={handleAddHistory}
+      />
+
+      {/* Investigation Modal */}
+      <InvestigationModal
+        isOpen={showInvestigationModal}
+        onClose={() => setShowInvestigationModal(false)}
+        onAdd={handleAddInvestigation}
+      />
+
+      {/* Advice Modal */}
+      <AdviceModal
+        isOpen={showAdviceModal}
+        onClose={() => setShowAdviceModal(false)}
+        onAdd={handleAddAdvice}
+      />
     </div>
   );
 }

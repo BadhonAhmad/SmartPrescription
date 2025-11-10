@@ -4,9 +4,20 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { User, FileText, Pill, BarChart3, Calendar, Eye, Filter } from "lucide-react";
+import {
+  User,
+  FileText,
+  Pill,
+  BarChart3,
+  Calendar,
+  Eye,
+  Filter,
+  Edit,
+  Trash2,
+} from "lucide-react";
 import ProfileDropdown from "@/components/ProfileDropdown";
 import api from "@/lib/api";
+import toast from "react-hot-toast";
 
 export default function DashboardPage() {
   const { isAuthenticated, loading } = useAuth();
@@ -14,7 +25,8 @@ export default function DashboardPage() {
   const [prescriptions, setPrescriptions] = useState<any[]>([]);
   const [filteredPrescriptions, setFilteredPrescriptions] = useState<any[]>([]);
   const [loadingPrescriptions, setLoadingPrescriptions] = useState(true);
-  
+  const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null);
+
   // Date range filter (default: current month)
   const [startDate, setStartDate] = useState(() => {
     const date = new Date();
@@ -84,6 +96,21 @@ export default function DashboardPage() {
       month: "short",
       day: "numeric",
     });
+  };
+
+  const handleDeletePrescription = async (id: number) => {
+    try {
+      await api.delete(`/API/v1/prescription/${id}`);
+      toast.success("Prescription deleted successfully!");
+      setDeleteConfirmId(null);
+      // Refresh the prescriptions list
+      fetchPrescriptions();
+    } catch (error: any) {
+      console.error("Error deleting prescription:", error);
+      toast.error(
+        error.response?.data?.message || "Failed to delete prescription"
+      );
+    }
   };
 
   if (loading || !isAuthenticated) {
@@ -337,18 +364,39 @@ export default function DashboardPage() {
                         {prescription.gender || "N/A"}
                       </td>
                       <td className="px-4 py-3 text-sm text-gray-600">
-                        <div className="max-w-xs truncate" title={prescription.diagnosis}>
+                        <div
+                          className="max-w-xs truncate"
+                          title={prescription.diagnosis}
+                        >
                           {prescription.diagnosis || "N/A"}
                         </div>
                       </td>
                       <td className="px-4 py-3 text-sm text-center">
-                        <Link
-                          href={`/prescriptions/view/${prescription.prescriptionId}`}
-                          className="inline-flex items-center gap-1 px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                        >
-                          <Eye size={14} />
-                          View
-                        </Link>
+                        <div className="flex items-center justify-center gap-2">
+                          <Link
+                            href={`/prescriptions/edit/${prescription.prescriptionId}`}
+                            className="inline-flex items-center gap-1 px-3 py-1.5 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                          >
+                            <Edit size={14} />
+                            Edit
+                          </Link>
+                          <Link
+                            href={`/prescriptions/view/${prescription.prescriptionId}`}
+                            className="inline-flex items-center gap-1 px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                          >
+                            <Eye size={14} />
+                            View
+                          </Link>
+                          <button
+                            onClick={() =>
+                              setDeleteConfirmId(prescription.prescriptionId)
+                            }
+                            className="inline-flex items-center gap-1 px-3 py-1.5 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                          >
+                            <Trash2 size={14} />
+                            Delete
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -358,6 +406,40 @@ export default function DashboardPage() {
           )}
         </div>
       </main>
+
+      {/* Delete Confirmation Modal */}
+      {deleteConfirmId !== null && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2 bg-red-100 rounded-full">
+                <Trash2 size={24} className="text-red-600" />
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900">
+                Delete Prescription
+              </h3>
+            </div>
+            <p className="text-gray-600 mb-6">
+              Are you sure you want to delete this prescription? This action
+              cannot be undone.
+            </p>
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={() => setDeleteConfirmId(null)}
+                className="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-lg font-medium transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => handleDeletePrescription(deleteConfirmId)}
+                className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-colors"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

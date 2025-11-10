@@ -33,6 +33,7 @@ export default function PrescriptionsPage() {
   const [prescriptions, setPrescriptions] = useState<Prescription[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [isLoading, setIsLoading] = useState(true);
+  const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null);
 
   // Date range filter (default: current month)
   const [startDate, setStartDate] = useState(() => {
@@ -70,11 +71,10 @@ export default function PrescriptionsPage() {
   };
 
   const handleDelete = async (id: number) => {
-    if (!confirm("Are you sure you want to delete this prescription?")) return;
-
     try {
       await api.delete(`/API/v1/prescription/${id}`);
       toast.success("Prescription deleted successfully");
+      setDeleteConfirmId(null);
       fetchPrescriptions();
     } catch (error) {
       console.error("Error deleting prescription:", error);
@@ -267,7 +267,7 @@ export default function PrescriptionsPage() {
                         </Link>
                         <button
                           onClick={() =>
-                            handleDelete(prescription.prescriptionId)
+                            setDeleteConfirmId(prescription.prescriptionId)
                           }
                           className="text-red-600 hover:text-red-900"
                           title="Delete"
@@ -292,6 +292,40 @@ export default function PrescriptionsPage() {
           </Link>
         </div>
       </main>
+
+      {/* Delete Confirmation Modal */}
+      {deleteConfirmId !== null && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2 bg-red-100 rounded-full">
+                <Trash2 size={24} className="text-red-600" />
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900">
+                Delete Prescription
+              </h3>
+            </div>
+            <p className="text-gray-600 mb-6">
+              Are you sure you want to delete this prescription? This action
+              cannot be undone.
+            </p>
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={() => setDeleteConfirmId(null)}
+                className="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-lg font-medium transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => handleDelete(deleteConfirmId)}
+                className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-colors"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
