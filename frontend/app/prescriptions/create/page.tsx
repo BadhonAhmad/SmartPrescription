@@ -1,8 +1,8 @@
 ﻿"use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import api from "@/lib/api";
 import toast from "react-hot-toast";
 import { Save, Printer, Plus, X } from "lucide-react";
@@ -31,6 +31,7 @@ interface InvestigationItem {
 export default function CreatePrescriptionPage() {
   const { isAuthenticated, loading } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   const [formData, setFormData] = useState({
     prescriptionDate: new Date().toISOString().split("T")[0],
@@ -56,6 +57,21 @@ export default function CreatePrescriptionPage() {
   const [showAdviceModal, setShowAdviceModal] = useState(false);
 
   const [errors, setErrors] = useState<Errors>({});
+
+  // Pre-fill patient data from URL parameters (when coming from patient profile)
+  useEffect(() => {
+    const patientName = searchParams.get('patientName');
+    const patientAge = searchParams.get('patientAge');
+    const patientId = searchParams.get('patientId');
+    
+    if (patientName || patientAge) {
+      setFormData(prev => ({
+        ...prev,
+        patientName: patientName || prev.patientName,
+        patientAge: patientAge || prev.patientAge,
+      }));
+    }
+  }, [searchParams]);
 
   if (loading) {
     return (
