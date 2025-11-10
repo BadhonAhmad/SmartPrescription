@@ -12,6 +12,7 @@ import ChiefComplaintModal from "@/components/ChiefComplaintModal";
 import HistoryModal from "@/components/HistoryModal";
 import AdviceModal from "@/components/AdviceModal";
 import InvestigationModal from "@/components/InvestigationModal";
+import ProfileDropdown from "@/components/ProfileDropdown";
 
 type Errors = Record<string, string>;
 
@@ -205,6 +206,35 @@ export default function CreatePrescriptionPage() {
 
   return (
     <div className="min-h-screen bg-gray-100">
+      {/* Dashboard Button */}
+      <div className="absolute top-4 left-4 z-20">
+        <button
+          onClick={() => router.push("/dashboard")}
+          className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg shadow-md font-medium transition-colors"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+            <polyline points="9 22 9 12 15 12 15 22" />
+          </svg>
+          Dashboard
+        </button>
+      </div>
+
+      {/* Profile Dropdown */}
+      <div className="absolute top-4 right-4 z-20">
+        <ProfileDropdown />
+      </div>
+
       {/* Header - Doctor Info (English Left, Bangla Right) */}
       <header className="bg-white border-b-2 border-gray-800">
         <div className="max-w-7xl mx-auto px-6 py-3 flex justify-between items-start">
