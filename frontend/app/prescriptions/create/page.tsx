@@ -8,6 +8,10 @@ import toast from "react-hot-toast";
 import { Save, Printer, Plus, X } from "lucide-react";
 import MedicineSearchModal from "@/components/MedicineSearchModal";
 import DiagnosisAutoComplete from "@/components/DiagnosisAutoComplete";
+import ChiefComplaintModal from "@/components/ChiefComplaintModal";
+import HistoryModal from "@/components/HistoryModal";
+import AdviceModal from "@/components/AdviceModal";
+import InvestigationModal from "@/components/InvestigationModal";
 
 type Errors = Record<string, string>;
 
@@ -16,6 +20,11 @@ interface MedicineItem {
   schedule: string;
   duration: string;
   note: string;
+}
+
+interface InvestigationItem {
+  test: string;
+  remark: string;
 }
 
 export default function CreatePrescriptionPage() {
@@ -32,7 +41,19 @@ export default function CreatePrescriptionPage() {
   });
 
   const [medicineList, setMedicineList] = useState<MedicineItem[]>([]);
+  const [chiefComplaintList, setChiefComplaintList] = useState<string[]>([]);
+  const [historyList, setHistoryList] = useState<string[]>([]);
+  const [investigationList, setInvestigationList] = useState<
+    InvestigationItem[]
+  >([]);
+  const [adviceList, setAdviceList] = useState<string[]>([]);
+
   const [showMedicineModal, setShowMedicineModal] = useState(false);
+  const [showComplaintModal, setShowComplaintModal] = useState(false);
+  const [showHistoryModal, setShowHistoryModal] = useState(false);
+  const [showInvestigationModal, setShowInvestigationModal] = useState(false);
+  const [showAdviceModal, setShowAdviceModal] = useState(false);
+
   const [errors, setErrors] = useState<Errors>({});
 
   if (loading) {
@@ -91,6 +112,38 @@ export default function CreatePrescriptionPage() {
 
   const handleRemoveMedicine = (index: number) => {
     setMedicineList(medicineList.filter((_, i) => i !== index));
+  };
+
+  const handleAddComplaint = (complaint: string) => {
+    setChiefComplaintList([...chiefComplaintList, complaint]);
+  };
+
+  const handleRemoveComplaint = (index: number) => {
+    setChiefComplaintList(chiefComplaintList.filter((_, i) => i !== index));
+  };
+
+  const handleAddHistory = (history: string) => {
+    setHistoryList([...historyList, history]);
+  };
+
+  const handleRemoveHistory = (index: number) => {
+    setHistoryList(historyList.filter((_, i) => i !== index));
+  };
+
+  const handleAddInvestigation = (item: InvestigationItem) => {
+    setInvestigationList([...investigationList, item]);
+  };
+
+  const handleRemoveInvestigation = (index: number) => {
+    setInvestigationList(investigationList.filter((_, i) => i !== index));
+  };
+
+  const handleAddAdvice = (advice: string) => {
+    setAdviceList([...adviceList, advice]);
+  };
+
+  const handleRemoveAdvice = (index: number) => {
+    setAdviceList(adviceList.filter((_, i) => i !== index));
   };
 
   const formatMedicinesForSubmit = () => {
@@ -250,34 +303,141 @@ export default function CreatePrescriptionPage() {
           <div className="grid grid-cols-3 min-h-[600px]">
             {/* Left Column */}
             <div className="col-span-1 border-r border-gray-300 p-4 space-y-4">
+              {/* Chief Complaint */}
               <div>
-                <label className="font-semibold text-gray-800 mb-2 block">
-                  Chief Complaint +
-                </label>
-                <textarea
-                  placeholder="Add chief complaint..."
-                  rows={3}
-                  className="w-full p-2 border border-gray-300 rounded text-sm focus:ring-1 focus:ring-blue-500 outline-none"
-                />
+                <div className="flex items-center justify-between mb-2">
+                  <label className="font-semibold text-gray-800">
+                    Chief Complaint
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => setShowComplaintModal(true)}
+                    className="text-blue-600 hover:text-blue-700"
+                  >
+                    <Plus size={20} />
+                  </button>
+                </div>
+                <div className="space-y-1 min-h-[60px] border border-gray-200 rounded p-2 bg-gray-50">
+                  {chiefComplaintList.length === 0 ? (
+                    <div className="text-center text-gray-400 text-sm py-2">
+                      Click + to add
+                    </div>
+                  ) : (
+                    chiefComplaintList.map((complaint, idx) => (
+                      <div
+                        key={idx}
+                        className="flex items-center justify-between bg-white px-2 py-1 rounded border border-gray-200"
+                      >
+                        <span className="text-sm text-gray-800">
+                          • {complaint}
+                        </span>
+                        <button
+                          onClick={() => handleRemoveComplaint(idx)}
+                          className="text-red-500 hover:text-red-700"
+                        >
+                          <X size={14} />
+                        </button>
+                      </div>
+                    ))
+                  )}
+                </div>
               </div>
+
+              {/* History */}
               <div>
-                <label className="font-semibold text-gray-800 mb-2 block">
-                  History +
-                </label>
-                <textarea
-                  placeholder="Add history..."
-                  rows={3}
-                  className="w-full p-2 border border-gray-300 rounded text-sm focus:ring-1 focus:ring-blue-500 outline-none"
-                />
+                <div className="flex items-center justify-between mb-2">
+                  <label className="font-semibold text-gray-800">History</label>
+                  <button
+                    type="button"
+                    onClick={() => setShowHistoryModal(true)}
+                    className="text-blue-600 hover:text-blue-700"
+                  >
+                    <Plus size={20} />
+                  </button>
+                </div>
+                <div className="space-y-1 min-h-[60px] border border-gray-200 rounded p-2 bg-gray-50">
+                  {historyList.length === 0 ? (
+                    <div className="text-center text-gray-400 text-sm py-2">
+                      Click + to add
+                    </div>
+                  ) : (
+                    historyList.map((history, idx) => (
+                      <div
+                        key={idx}
+                        className="flex items-center justify-between bg-white px-2 py-1 rounded border border-gray-200"
+                      >
+                        <span className="text-sm text-gray-800">
+                          • {history}
+                        </span>
+                        <button
+                          onClick={() => handleRemoveHistory(idx)}
+                          className="text-red-500 hover:text-red-700"
+                        >
+                          <X size={14} />
+                        </button>
+                      </div>
+                    ))
+                  )}
+                </div>
               </div>
+
+              {/* Investigation */}
               <div>
+                <div className="flex items-center justify-between mb-2">
+                  <label className="font-semibold text-gray-800">
+                    Diagnosis
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => setShowInvestigationModal(true)}
+                    className="text-blue-600 hover:text-blue-700"
+                  >
+                    <Plus size={20} />
+                  </button>
+                </div>
+                <div className="space-y-1 min-h-[80px] border border-gray-200 rounded p-2 bg-gray-50">
+                  {investigationList.length === 0 ? (
+                    <div className="text-center text-gray-400 text-sm py-2">
+                      Click + to add
+                    </div>
+                  ) : (
+                    investigationList.map((item, idx) => (
+                      <div
+                        key={idx}
+                        className="flex items-center justify-between bg-white px-2 py-1 rounded border border-gray-200"
+                      >
+                        <div className="flex-1">
+                          <span className="text-sm font-medium text-gray-800">
+                            • {item.test}
+                          </span>
+                          {item.remark && (
+                            <span className="text-sm text-gray-600">
+                              {" "}
+                              - {item.remark}
+                            </span>
+                          )}
+                        </div>
+                        <button
+                          onClick={() => handleRemoveInvestigation(idx)}
+                          className="text-red-500 hover:text-red-700"
+                        >
+                          <X size={14} />
+                        </button>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+
+              {/* Diagnosis */}
+              {/* <div>
                 <DiagnosisAutoComplete
                   value={formData.diagnosis}
                   onChange={(value) =>
                     setFormData((prev) => ({ ...prev, diagnosis: value }))
                   }
                 />
-              </div>
+              </div> */}
             </div>
 
             {/* Right Column - Rx, Advice, Follow Up, Special Note */}
@@ -333,14 +493,40 @@ export default function CreatePrescriptionPage() {
 
               {/* Advices */}
               <div>
-                <label className="font-semibold text-gray-800 mb-2 block">
-                  Advices +
-                </label>
-                <textarea
-                  placeholder="Add medical advice..."
-                  rows={3}
-                  className="w-full p-2 border border-gray-300 rounded text-sm focus:ring-1 focus:ring-blue-500 outline-none"
-                />
+                <div className="flex items-center justify-between mb-2">
+                  <label className="font-semibold text-gray-800">Advices</label>
+                  <button
+                    type="button"
+                    onClick={() => setShowAdviceModal(true)}
+                    className="text-blue-600 hover:text-blue-700"
+                  >
+                    <Plus size={20} />
+                  </button>
+                </div>
+                <div className="space-y-1 min-h-[100px] border border-gray-200 rounded p-2 bg-gray-50">
+                  {adviceList.length === 0 ? (
+                    <div className="text-center text-gray-400 text-sm py-2">
+                      Click + to add advice
+                    </div>
+                  ) : (
+                    adviceList.map((advice, idx) => (
+                      <div
+                        key={idx}
+                        className="flex items-center justify-between bg-white px-2 py-1 rounded border border-gray-200"
+                      >
+                        <span className="text-sm text-gray-800">
+                          • {advice}
+                        </span>
+                        <button
+                          onClick={() => handleRemoveAdvice(idx)}
+                          className="text-red-500 hover:text-red-700"
+                        >
+                          <X size={14} />
+                        </button>
+                      </div>
+                    ))
+                  )}
+                </div>
               </div>
 
               {/* Follow Up */}
@@ -393,6 +579,34 @@ export default function CreatePrescriptionPage() {
         isOpen={showMedicineModal}
         onClose={() => setShowMedicineModal(false)}
         onAdd={handleAddMedicine}
+      />
+
+      {/* Chief Complaint Modal */}
+      <ChiefComplaintModal
+        isOpen={showComplaintModal}
+        onClose={() => setShowComplaintModal(false)}
+        onAdd={handleAddComplaint}
+      />
+
+      {/* History Modal */}
+      <HistoryModal
+        isOpen={showHistoryModal}
+        onClose={() => setShowHistoryModal(false)}
+        onAdd={handleAddHistory}
+      />
+
+      {/* Investigation Modal */}
+      <InvestigationModal
+        isOpen={showInvestigationModal}
+        onClose={() => setShowInvestigationModal(false)}
+        onAdd={handleAddInvestigation}
+      />
+
+      {/* Advice Modal */}
+      <AdviceModal
+        isOpen={showAdviceModal}
+        onClose={() => setShowAdviceModal(false)}
+        onAdd={handleAddAdvice}
       />
     </div>
   );
