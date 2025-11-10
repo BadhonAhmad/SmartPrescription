@@ -1,7 +1,7 @@
 "use client";
 
 import { useAuth } from "@/contexts/AuthContext";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import {
@@ -30,6 +30,7 @@ interface Prescription {
 export default function PrescriptionsPage() {
   const { isAuthenticated, loading } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [prescriptions, setPrescriptions] = useState<Prescription[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [isLoading, setIsLoading] = useState(true);
@@ -53,6 +54,14 @@ export default function PrescriptionsPage() {
       router.push("/login");
     }
   }, [isAuthenticated, loading, router]);
+
+  useEffect(() => {
+    // Get patient name from URL query parameter
+    const patientName = searchParams.get("patientName");
+    if (patientName) {
+      setSearchTerm(patientName);
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     fetchPrescriptions();
