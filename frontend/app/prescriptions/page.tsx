@@ -118,7 +118,7 @@ export default function PrescriptionsPage() {
           <div className="flex items-center gap-4">
             <Link
               href="/dashboard"
-              className="p-2 hover:bg-gray-100 rounded-lg"
+              className="p-2 hover:bg-gray-100 rounded-xl transition-colors"
             >
               <ArrowLeft size={24} />
             </Link>
@@ -129,6 +129,17 @@ export default function PrescriptionsPage() {
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Day-wise Report Button */}
+        <div className="mb-6">
+          <Link
+            href="/prescriptions/report"
+            className="btn-primary inline-flex items-center gap-2"
+          >
+            <Calendar size={20} />
+            View Day-wise Report
+          </Link>
+        </div>
+
         {/* Date Range Filter */}
         <div className="card mb-6">
           <h3 className="text-lg font-semibold mb-4">Filter by Date Range</h3>
@@ -158,7 +169,7 @@ export default function PrescriptionsPage() {
             <div className="flex items-end">
               <button
                 onClick={fetchPrescriptions}
-                className="btn-primary w-full flex items-center justify-center gap-2"
+                className="btn-primary w-full flex items-center justify-center gap-2 h-[50px]"
               >
                 <Calendar size={20} />
                 Apply Filter
@@ -184,7 +195,7 @@ export default function PrescriptionsPage() {
           </div>
           <Link
             href="/prescriptions/create"
-            className="btn-primary flex items-center gap-2 justify-center"
+            className="btn-primary flex items-center gap-2 justify-center rounded-xl"
           >
             <Plus size={20} />
             New Prescription
@@ -200,7 +211,7 @@ export default function PrescriptionsPage() {
             {searchTerm === "" && (
               <Link
                 href="/prescriptions/create"
-                className="btn-primary inline-flex items-center gap-2 mt-4"
+                className="btn-primary inline-flex items-center gap-2 mt-4 rounded-xl"
               >
                 <Plus size={20} />
                 Create Your First Prescription
@@ -227,7 +238,7 @@ export default function PrescriptionsPage() {
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Diagnosis
                   </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Actions
                   </th>
                 </tr>
@@ -258,30 +269,30 @@ export default function PrescriptionsPage() {
                     <td className="px-6 py-4 text-sm text-gray-900 max-w-xs truncate">
                       {prescription.diagnosis || "N/A"}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      <div className="flex justify-end gap-2">
+                    <td className="px-6 py-4 text-sm text-center">
+                      <div className="flex items-center justify-center gap-2">
                         <Link
                           href={`/prescriptions/view/${prescription.prescriptionId}`}
-                          className="text-green-600 hover:text-green-900"
-                          title="View"
+                          className="inline-flex items-center gap-1.5 px-3 py-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all shadow-md hover:shadow-lg text-xs font-medium"
                         >
-                          <Eye size={18} />
+                          <Eye size={14} />
+                          View
                         </Link>
                         <Link
                           href={`/prescriptions/edit/${prescription.prescriptionId}`}
-                          className="text-blue-600 hover:text-blue-900"
-                          title="Edit"
+                          className="inline-flex items-center gap-1.5 px-3 py-2 bg-gradient-to-r from-emerald-600 to-green-700 text-white rounded-lg hover:from-emerald-700 hover:to-green-800 transition-all shadow-md hover:shadow-lg text-xs font-medium"
                         >
-                          <Edit size={18} />
+                          <Edit size={14} />
+                          Edit
                         </Link>
                         <button
                           onClick={() =>
                             setDeleteConfirmId(prescription.prescriptionId)
                           }
-                          className="text-red-600 hover:text-red-900"
-                          title="Delete"
+                          className="inline-flex items-center gap-1.5 px-3 py-2 bg-gradient-to-r from-red-600 to-red-700 text-white rounded-lg hover:from-red-700 hover:to-red-800 transition-all shadow-md hover:shadow-lg text-xs font-medium"
                         >
-                          <Trash2 size={18} />
+                          <Trash2 size={14} />
+                          Delete
                         </button>
                       </div>
                     </td>
@@ -291,21 +302,12 @@ export default function PrescriptionsPage() {
             </table>
           </div>
         )}
-
-        <div className="mt-8 flex gap-4">
-          <Link href="/prescriptions/report" className="btn-primary">
-            View Day-wise Report
-          </Link>
-          <Link href="/prescriptions/rxnav" className="btn-primary">
-            Drug Interactions (RXNAV)
-          </Link>
-        </div>
       </main>
 
       {/* Delete Confirmation Modal */}
       {deleteConfirmId !== null && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+          <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6">
             <div className="flex items-center gap-3 mb-4">
               <div className="p-2 bg-red-100 rounded-full">
                 <Trash2 size={24} className="text-red-600" />
@@ -321,13 +323,13 @@ export default function PrescriptionsPage() {
             <div className="flex gap-3 justify-end">
               <button
                 onClick={() => setDeleteConfirmId(null)}
-                className="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-lg font-medium transition-colors"
+                className="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-xl font-medium transition-colors"
               >
                 Cancel
               </button>
               <button
                 onClick={() => handleDelete(deleteConfirmId)}
-                className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-colors"
+                className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-xl font-medium transition-colors"
               >
                 Delete
               </button>
