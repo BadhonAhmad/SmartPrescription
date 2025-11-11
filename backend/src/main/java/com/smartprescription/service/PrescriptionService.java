@@ -1,6 +1,6 @@
 package com.smartprescription.service;
 
-import com.smartprescription.entity.Patient;
+import com.smartprescription.infrastructure.persistence.entity.PatientJpaEntity;
 import com.smartprescription.entity.PatientVisit;
 import com.smartprescription.repository.PatientRepository;
 import com.smartprescription.repository.PatientVisitRepository;
@@ -11,15 +11,18 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * Prescription Service
+ * Prescription Service (Legacy - for backward compatibility)
  * 
  * Manages patient visits and prescriptions:
  * - Create new prescription
  * - Get patient visit history
  * - Update prescription
  * - Search prescriptions
+ * 
+ * @deprecated Use PrescriptionUseCase instead for new code
  */
 @Service
+@Deprecated
 public class PrescriptionService {
 
     @Autowired
@@ -41,7 +44,7 @@ public class PrescriptionService {
         patientVisit.setVisit(LocalDate.now());
 
         // Create or update patient automatically
-        Patient patient = createOrUpdatePatient(patientVisit);
+        PatientJpaEntity patient = createOrUpdatePatient(patientVisit);
         patientVisit.setId(patient.getId());
 
         return patientVisitRepository.save(patientVisit);
@@ -50,16 +53,16 @@ public class PrescriptionService {
     /**
      * Create or update patient from prescription data
      */
-    private Patient createOrUpdatePatient(PatientVisit visit) {
+    private PatientJpaEntity createOrUpdatePatient(PatientVisit visit) {
         // Try to find existing patient by name (you can enhance this with phone or
         // other unique identifier)
-        Optional<Patient> existingPatient = patientRepository
+        Optional<PatientJpaEntity> existingPatient = patientRepository
                 .findByNameContainingIgnoreCase(visit.getName())
                 .stream()
                 .filter(p -> p.getName().equalsIgnoreCase(visit.getName()))
                 .findFirst();
 
-        Patient patient;
+        PatientJpaEntity patient;
         if (existingPatient.isPresent()) {
             // Update existing patient
             patient = existingPatient.get();
@@ -67,7 +70,7 @@ public class PrescriptionService {
             patient.setLastVisit(LocalDate.now());
         } else {
             // Create new patient
-            patient = new Patient();
+            patient = new PatientJpaEntity();
             patient.setName(visit.getName());
             patient.setAge(visit.getPatientAge() != null ? visit.getPatientAge().toString() : "");
             patient.setLastVisit(LocalDate.now());
@@ -99,9 +102,9 @@ public class PrescriptionService {
 
         // Update patient information if patient exists
         if (prescription.getId() != null && prescription.getId() > 0) {
-            Optional<Patient> patientOpt = patientRepository.findById(prescription.getId());
+            Optional<PatientJpaEntity> patientOpt = patientRepository.findById(prescription.getId());
             if (patientOpt.isPresent()) {
-                Patient patient = patientOpt.get();
+                PatientJpaEntity patient = patientOpt.get();
                 patient.setName(details.getName());
                 patient.setAge(details.getPatientAge() != null ? details.getPatientAge().toString() : patient.getAge());
                 patient.setLastVisit(LocalDate.now());

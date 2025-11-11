@@ -122,286 +122,309 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white shadow-sm">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-gray-50">
+      {/* Header */}
+      <header className="bg-white/80 backdrop-blur-md shadow-sm sticky top-0 z-40 border-b border-gray-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex justify-between items-center">
-            <h1 className="text-2xl font-bold text-blue-600">
-              SmartPrescription
-            </h1>
+            <div>
+              <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent">
+                SmartPrescription
+              </h1>
+              <p className="text-xs text-gray-500 mt-0.5">Medical Management System</p>
+            </div>
             <ProfileDropdown />
           </div>
         </div>
       </header>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-8">
-          <h2 className="text-3xl font-bold text-gray-900">Dashboard</h2>
-          <p className="text-gray-600 mt-2">Manage your clinic efficiently</p>
+        {/* Welcome Section */}
+        <div className="mb-10">
+          <h2 className="text-4xl font-bold text-gray-900 mb-2">
+            Welcome Back
+          </h2>
+          <p className="text-lg text-gray-600">
+            Manage your clinic operations efficiently
+          </p>
         </div>
 
-        <div className="mb-8">
-          <h3 className="text-xl font-semibold text-gray-900 mb-4">
-            Quick Actions
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {/* Quick Actions Grid - Now 5 cards in a responsive grid */}
+        <div className="mb-10">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+            {/* New Prescription Card */}
             <Link
               href="/prescriptions/create"
-              className="card hover:shadow-lg transition-shadow cursor-pointer"
+              className="group relative bg-gradient-to-br from-emerald-500 to-green-600 rounded-2xl p-6 hover:shadow-2xl hover:scale-105 transition-all duration-300 overflow-hidden"
             >
-              <div className="flex items-center gap-4">
-                <div className="p-3 bg-green-100 rounded-lg">
-                  <FileText size={24} className="text-green-600" />
+              <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-12 -mt-12"></div>
+              <div className="relative z-10">
+                <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                  <FileText size={24} className="text-white" />
                 </div>
-                <div>
-                  <h4 className="font-semibold text-gray-900">
-                    New Prescription
-                  </h4>
-                  <p className="text-sm text-gray-600">
-                    Create new prescription
-                  </p>
-                </div>
+                <h3 className="text-white font-bold text-lg mb-1">
+                  New Rx
+                </h3>
+                <p className="text-emerald-100 text-sm">
+                  Create prescription
+                </p>
               </div>
             </Link>
 
+            {/* View Prescriptions Card */}
             <Link
               href="/prescriptions"
-              className="card hover:shadow-lg transition-shadow cursor-pointer"
+              className="group relative bg-gradient-to-br from-blue-500 to-blue-700 rounded-2xl p-6 hover:shadow-2xl hover:scale-105 transition-all duration-300 overflow-hidden"
             >
-              <div className="flex items-center gap-4">
-                <div className="p-3 bg-blue-100 rounded-lg">
-                  <FileText size={24} className="text-blue-600" />
+              <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-12 -mt-12"></div>
+              <div className="relative z-10">
+                <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                  <FileText size={24} className="text-white" />
                 </div>
-                <div>
-                  <h4 className="font-semibold text-gray-900">
-                    View Prescriptions
-                  </h4>
-                  <p className="text-sm text-gray-600">See all prescriptions</p>
-                </div>
+                <h3 className="text-white font-bold text-lg mb-1">
+                  Prescriptions
+                </h3>
+                <p className="text-blue-100 text-sm">
+                  View all records
+                </p>
               </div>
             </Link>
 
+            {/* Manage Patients Card */}
             <Link
               href="/patients"
-              className="card hover:shadow-lg transition-shadow cursor-pointer"
+              className="group relative bg-gradient-to-br from-purple-500 to-purple-700 rounded-2xl p-6 hover:shadow-2xl hover:scale-105 transition-all duration-300 overflow-hidden"
             >
-              <div className="flex items-center gap-4">
-                <div className="p-3 bg-purple-100 rounded-lg">
-                  <User size={24} className="text-purple-600" />
+              <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-12 -mt-12"></div>
+              <div className="relative z-10">
+                <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                  <User size={24} className="text-white" />
                 </div>
-                <div>
-                  <h4 className="font-semibold text-gray-900">
-                    Manage Patients
-                  </h4>
-                  <p className="text-sm text-gray-600">View patient records</p>
-                </div>
+                <h3 className="text-white font-bold text-lg mb-1">
+                  Patients
+                </h3>
+                <p className="text-purple-100 text-sm">
+                  Manage records
+                </p>
               </div>
             </Link>
 
-            <Link
-              href="/dashboard/report"
-              className="card hover:shadow-lg transition-shadow cursor-pointer bg-gradient-to-br from-orange-50 to-orange-100 border-2 border-orange-300"
-            >
-              <div className="flex items-center gap-4">
-                <div className="p-3 bg-orange-500 rounded-lg">
-                  <BarChart3 size={24} className="text-white" />
-                </div>
-                <div>
-                  <h4 className="font-semibold text-gray-900">Report</h4>
-                  <p className="text-sm text-gray-600">
-                    View statistics & reports
-                  </p>
-                </div>
-              </div>
-            </Link>
-          </div>
-        </div>
-
-        <div className="card">
-          <h3 className="text-xl font-semibold text-gray-900 mb-4">
-            Additional Features
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Medicine Database Card */}
             <Link
               href="/medicines"
-              className="flex items-center gap-3 p-4 hover:bg-gray-50 rounded-lg transition-colors"
+              className="group relative bg-gradient-to-br from-pink-500 to-rose-600 rounded-2xl p-6 hover:shadow-2xl hover:scale-105 transition-all duration-300 overflow-hidden"
             >
-              <Pill size={20} className="text-purple-600" />
-              <div>
-                <h4 className="font-medium text-gray-900">Medicine Database</h4>
-                <p className="text-sm text-gray-600">Browse medicines</p>
+              <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-12 -mt-12"></div>
+              <div className="relative z-10">
+                <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                  <Pill size={24} className="text-white" />
+                </div>
+                <h3 className="text-white font-bold text-lg mb-1">
+                  Medicines
+                </h3>
+                <p className="text-pink-100 text-sm">
+                  Browse catalog
+                </p>
               </div>
             </Link>
+
+            {/* Reports Card */}
             <Link
-              href="/prescriptions/rxnav"
-              className="flex items-center gap-3 p-4 hover:bg-gray-50 rounded-lg transition-colors"
+              href="/dashboard/report"
+              className="group relative bg-gradient-to-br from-orange-500 to-amber-600 rounded-2xl p-6 hover:shadow-2xl hover:scale-105 transition-all duration-300 overflow-hidden"
             >
-              <FileText size={20} className="text-blue-600" />
-              <div>
-                <h4 className="font-medium text-gray-900">Drug Interactions</h4>
-                <p className="text-sm text-gray-600">Check RXNAV data</p>
+              <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-12 -mt-12"></div>
+              <div className="relative z-10">
+                <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                  <BarChart3 size={24} className="text-white" />
+                </div>
+                <h3 className="text-white font-bold text-lg mb-1">
+                  Reports
+                </h3>
+                <p className="text-orange-100 text-sm">
+                  View analytics
+                </p>
               </div>
             </Link>
           </div>
         </div>
 
-        <div className="card mt-8">
+        {/* Recent Prescriptions Section */}
+        <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-gray-100 p-6">
           <div className="flex justify-between items-center mb-6">
-            <h3 className="text-xl font-semibold text-gray-900">
-              Prescriptions
-            </h3>
+            <div>
+              <h3 className="text-2xl font-bold text-gray-900">
+                Recent Prescriptions
+              </h3>
+              <p className="text-sm text-gray-500 mt-1">
+                Overview of recent patient visits
+              </p>
+            </div>
             <Link
               href="/prescriptions"
-              className="text-blue-600 hover:text-blue-700 text-sm font-medium"
+              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-colors shadow-md hover:shadow-lg"
             >
               View All
             </Link>
           </div>
 
           {/* Date Range Filter */}
-          <div className="mb-6 p-4 bg-gray-50 rounded-lg">
+          <div className="mb-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-100">
             <div className="flex items-center gap-4 flex-wrap">
               <div className="flex items-center gap-2">
-                <Calendar size={18} className="text-gray-600" />
-                <span className="text-sm font-medium text-gray-700">
-                  Filter by Date Range:
+                <div className="p-2 bg-blue-600 rounded-lg">
+                  <Calendar size={18} className="text-white" />
+                </div>
+                <span className="text-sm font-semibold text-gray-700">
+                  Date Range Filter
                 </span>
               </div>
               <div className="flex items-center gap-4 flex-1">
                 <div className="flex items-center gap-2">
-                  <label className="text-sm text-gray-600">From:</label>
+                  <label className="text-sm font-medium text-gray-600">From:</label>
                   <input
                     type="date"
                     value={startDate}
                     onChange={(e) => setStartDate(e.target.value)}
-                    className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white shadow-sm"
                   />
                 </div>
                 <div className="flex items-center gap-2">
-                  <label className="text-sm text-gray-600">To:</label>
+                  <label className="text-sm font-medium text-gray-600">To:</label>
                   <input
                     type="date"
                     value={endDate}
                     onChange={(e) => setEndDate(e.target.value)}
-                    className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white shadow-sm"
                   />
                 </div>
-                <div className="text-sm text-gray-500">
-                  {filteredPrescriptions.length} prescription(s) found
+                <div className="px-3 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium shadow-md">
+                  {filteredPrescriptions.length} found
                 </div>
               </div>
             </div>
           </div>
 
           {loadingPrescriptions ? (
-            <div className="text-center py-8 text-gray-500">
-              Loading prescriptions...
+            <div className="text-center py-12">
+              <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-blue-600 border-t-transparent"></div>
+              <p className="text-gray-500 mt-4">Loading prescriptions...</p>
             </div>
           ) : prescriptions.length === 0 ? (
-            <div className="text-center py-12">
-              <FileText size={48} className="mx-auto text-gray-300 mb-4" />
-              <p className="text-gray-500 text-lg">
-                You have no prescriptions yet to show
+            <div className="text-center py-16 bg-gradient-to-br from-gray-50 to-blue-50 rounded-xl">
+              <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <FileText size={40} className="text-blue-600" />
+              </div>
+              <p className="text-gray-700 text-lg font-medium mb-2">
+                No prescriptions yet
+              </p>
+              <p className="text-gray-500 text-sm mb-6">
+                Start by creating your first prescription
               </p>
               <Link
                 href="/prescriptions/create"
-                className="inline-block mt-4 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all shadow-lg hover:shadow-xl font-medium"
               >
-                Create Your First Prescription
+                <FileText size={18} />
+                Create Prescription
               </Link>
             </div>
           ) : filteredPrescriptions.length === 0 ? (
-            <div className="text-center py-12">
-              <Filter size={48} className="mx-auto text-gray-300 mb-4" />
-              <p className="text-gray-500 text-lg">
-                No prescriptions found for the selected date range
+            <div className="text-center py-16 bg-gradient-to-br from-gray-50 to-purple-50 rounded-xl">
+              <div className="w-20 h-20 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Filter size={40} className="text-purple-600" />
+              </div>
+              <p className="text-gray-700 text-lg font-medium mb-2">
+                No results found
               </p>
-              <p className="text-gray-400 text-sm mt-2">
-                Try adjusting the date range filter above
+              <p className="text-gray-500 text-sm">
+                Try adjusting the date range filter
               </p>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-gray-50 border-b border-gray-200">
-                  <tr>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                      Date
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                      Patient Name
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                      Age
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                      Gender
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                      Diagnosis
-                    </th>
-                    <th className="px-4 py-3 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {filteredPrescriptions.map((prescription) => (
-                    <tr
-                      key={prescription.prescriptionId}
-                      className="hover:bg-gray-50 transition-colors"
-                    >
-                      <td className="px-4 py-3 text-sm text-gray-900">
-                        {formatDate(prescription.visit)}
-                      </td>
-                      <td className="px-4 py-3 text-sm font-medium text-gray-900">
-                        {prescription.name || "Unknown Patient"}
-                      </td>
-                      <td className="px-4 py-3 text-sm text-gray-600">
-                        {prescription.patientAge || "N/A"}
-                      </td>
-                      <td className="px-4 py-3 text-sm text-gray-600">
-                        {prescription.gender || "N/A"}
-                      </td>
-                      <td className="px-4 py-3 text-sm text-gray-600">
-                        <div
-                          className="max-w-xs truncate"
-                          title={prescription.diagnosis}
-                        >
-                          {prescription.diagnosis || "N/A"}
-                        </div>
-                      </td>
-                      <td className="px-4 py-3 text-sm text-center">
-                        <div className="flex items-center justify-center gap-2">
-                          <Link
-                            href={`/prescriptions/edit/${prescription.prescriptionId}`}
-                            className="inline-flex items-center gap-1 px-3 py-1.5 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
-                          >
-                            <Edit size={14} />
-                            Edit
-                          </Link>
-                          <Link
-                            href={`/prescriptions/view/${prescription.prescriptionId}`}
-                            className="inline-flex items-center gap-1 px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                          >
-                            <Eye size={14} />
-                            View
-                          </Link>
-                          <button
-                            onClick={() =>
-                              setDeleteConfirmId(prescription.prescriptionId)
-                            }
-                            className="inline-flex items-center gap-1 px-3 py-1.5 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
-                          >
-                            <Trash2 size={14} />
-                            Delete
-                          </button>
-                        </div>
-                      </td>
+            <div className="overflow-hidden rounded-xl border border-gray-200 shadow-sm">
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-gradient-to-r from-gray-50 to-gray-100 border-b-2 border-gray-200">
+                    <tr>
+                      <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                        Date
+                      </th>
+                      <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                        Patient Name
+                      </th>
+                      <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                        Age
+                      </th>
+                      <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                        Gender
+                      </th>
+                      <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                        Diagnosis
+                      </th>
+                      <th className="px-6 py-4 text-center text-xs font-bold text-gray-700 uppercase tracking-wider">
+                        Actions
+                      </th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-100">
+                    {filteredPrescriptions.map((prescription) => (
+                      <tr
+                        key={prescription.prescriptionId}
+                        className="hover:bg-blue-50/50 transition-colors"
+                      >
+                        <td className="px-6 py-4 text-sm font-medium text-gray-900">
+                          {formatDate(prescription.visit)}
+                        </td>
+                        <td className="px-6 py-4 text-sm font-semibold text-gray-900">
+                          {prescription.name || "Unknown Patient"}
+                        </td>
+                        <td className="px-6 py-4 text-sm text-gray-600">
+                          {prescription.patientAge || "N/A"}
+                        </td>
+                        <td className="px-6 py-4 text-sm text-gray-600">
+                          {prescription.gender || "N/A"}
+                        </td>
+                        <td className="px-6 py-4 text-sm text-gray-600">
+                          <div
+                            className="max-w-xs truncate"
+                            title={prescription.diagnosis}
+                          >
+                            {prescription.diagnosis || "N/A"}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 text-sm text-center">
+                          <div className="flex items-center justify-center gap-2">
+                            <Link
+                              href={`/prescriptions/view/${prescription.prescriptionId}`}
+                              className="inline-flex items-center gap-1.5 px-3 py-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all shadow-md hover:shadow-lg text-xs font-medium"
+                            >
+                              <Eye size={14} />
+                              View
+                            </Link>
+                            <Link
+                              href={`/prescriptions/edit/${prescription.prescriptionId}`}
+                              className="inline-flex items-center gap-1.5 px-3 py-2 bg-gradient-to-r from-emerald-600 to-green-700 text-white rounded-lg hover:from-emerald-700 hover:to-green-800 transition-all shadow-md hover:shadow-lg text-xs font-medium"
+                            >
+                              <Edit size={14} />
+                              Edit
+                            </Link>
+                            <button
+                              onClick={() =>
+                                setDeleteConfirmId(prescription.prescriptionId)
+                              }
+                              className="inline-flex items-center gap-1.5 px-3 py-2 bg-gradient-to-r from-red-600 to-red-700 text-white rounded-lg hover:from-red-700 hover:to-red-800 transition-all shadow-md hover:shadow-lg text-xs font-medium"
+                            >
+                              <Trash2 size={14} />
+                              Delete
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           )}
         </div>
