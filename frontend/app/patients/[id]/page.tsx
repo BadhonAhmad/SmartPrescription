@@ -81,11 +81,11 @@ export default function PatientProfilePage() {
     try {
       const response = await api.get("/API/v1/prescription");
       const allPrescriptions = response.data || [];
-      
+
       // First, get the patient to get their name
       const patientResponse = await api.get(`/patients/${patientId}`);
       const patientData = patientResponse.data?.data || patientResponse.data;
-      
+
       // Filter prescriptions by patient name
       const filtered = allPrescriptions.filter(
         (p: Prescription) => p.name === patientData.name
@@ -160,7 +160,9 @@ export default function PatientProfilePage() {
             <Link href="/patients" className="p-2 hover:bg-gray-100 rounded-lg">
               <ArrowLeft size={24} />
             </Link>
-            <h1 className="text-2xl font-bold text-blue-600">Patient Profile</h1>
+            <h1 className="text-2xl font-bold text-blue-600">
+              Patient Profile
+            </h1>
           </div>
         </div>
       </header>
@@ -182,9 +184,11 @@ export default function PatientProfilePage() {
               </div>
             </div>
             <Link
-              href={`/prescriptions/create?patientId=${patient.id}&patientName=${encodeURIComponent(
-                patient.name
-              )}&patientAge=${patient.age}`}
+              href={`/prescriptions/create?patientId=${
+                patient.id
+              }&patientName=${encodeURIComponent(patient.name)}&patientAge=${
+                patient.age
+              }`}
               className="btn-primary flex items-center gap-2"
             >
               <Plus size={20} />
@@ -271,9 +275,11 @@ export default function PatientProfilePage() {
                 No prescriptions yet for this patient
               </p>
               <Link
-                href={`/prescriptions/create?patientId=${patient.id}&patientName=${encodeURIComponent(
-                  patient.name
-                )}&patientAge=${patient.age}`}
+                href={`/prescriptions/create?patientId=${
+                  patient.id
+                }&patientName=${encodeURIComponent(patient.name)}&patientAge=${
+                  patient.age
+                }`}
                 className="btn-primary inline-flex items-center gap-2"
               >
                 <Plus size={20} />
