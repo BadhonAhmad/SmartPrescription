@@ -14,10 +14,13 @@ import {
   Filter,
   Edit,
   Trash2,
+  AlertCircle,
+  X,
 } from "lucide-react";
 import ProfileDropdown from "@/components/ProfileDropdown";
 import api from "@/lib/api";
 import toast from "react-hot-toast";
+import { isProfileComplete } from "@/lib/profileUtils";
 
 export default function DashboardPage() {
   const { isAuthenticated, loading } = useAuth();
@@ -26,6 +29,7 @@ export default function DashboardPage() {
   const [filteredPrescriptions, setFilteredPrescriptions] = useState<any[]>([]);
   const [loadingPrescriptions, setLoadingPrescriptions] = useState(true);
   const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null);
+  const [showProfileWarning, setShowProfileWarning] = useState(false);
 
   // Date range filter (default: current month)
   const [startDate, setStartDate] = useState(() => {
@@ -43,8 +47,36 @@ export default function DashboardPage() {
   useEffect(() => {
     if (!loading && !isAuthenticated) {
       router.push("/login");
+    } else if (isAuthenticated) {
+      // Check if profile is complete
+      setShowProfileWarning(!isProfileComplete());
     }
   }, [isAuthenticated, loading, router]);
+
+  // Re-check profile status when page becomes visible (user navigates back)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible' && isAuthenticated) {
+        setShowProfileWarning(!isProfileComplete());
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    
+    // Also check on window focus
+    const handleFocus = () => {
+      if (isAuthenticated) {
+        setShowProfileWarning(!isProfileComplete());
+      }
+    };
+    
+    window.addEventListener('focus', handleFocus);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('focus', handleFocus);
+    };
+  }, [isAuthenticated]);
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -139,6 +171,38 @@ export default function DashboardPage() {
       </header>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Profile Completion Warning */}
+        {showProfileWarning && (
+          <div className="mb-6 bg-amber-50 border-l-4 border-amber-500 rounded-xl p-6 shadow-md">
+            <div className="flex items-start gap-4">
+              <div className="flex-shrink-0">
+                <AlertCircle className="h-6 w-6 text-amber-600" />
+              </div>
+              <div className="flex-1">
+                <h3 className="text-lg font-semibold text-amber-900 mb-2">
+                  Complete Your Profile
+                </h3>
+                <p className="text-amber-800 mb-4">
+                  Please complete your doctor profile before creating prescriptions. 
+                  Your profile information will be displayed on all prescriptions.
+                </p>
+                <Link
+                  href="/profile/settings"
+                  className="inline-flex items-center gap-2 px-6 py-3 bg-amber-600 hover:bg-amber-700 text-white rounded-xl font-medium transition-colors shadow-sm"
+                >
+                  Complete Profile Now
+                </Link>
+              </div>
+              <button
+                onClick={() => setShowProfileWarning(false)}
+                className="flex-shrink-0 text-amber-600 hover:text-amber-800 transition-colors"
+              >
+                <X size={20} />
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Welcome Section */}
         <div className="mb-10">
           <h2 className="text-4xl font-bold text-gray-900 mb-2">

@@ -5,32 +5,42 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { ArrowLeft, Save } from "lucide-react";
 import toast from "react-hot-toast";
+import { getDoctorProfile, saveDoctorProfile } from "@/lib/profileUtils";
 
 export default function ProfileSettingsPage() {
   const { isAuthenticated, loading } = useAuth();
   const router = useRouter();
 
   const [formData, setFormData] = useState({
-    doctorName: "DR. ABU NOYIM MOHAMMAD",
-    doctorNameBangla: "ডা.আবু নঈম মোহাম্মদ",
-    doctorDegree: "MBBS, DEM (Endocrinology & Metabolism)",
-    doctorDegreeBangla: "এমবিবিএস, ডিইএম(এন্ডোক্রাইনোলজি & মেটাবলিজম)",
-    specialization: "Consultant Diabetologist, Endocrionologist & Metabolic Disorder Specialist",
-    specializationBangla: "ডায়াবেটিস, হরমোন ও মেটাবলিজম বিশেষজ্ঞ",
-    details: "আবাসিক চিকিৎসক - আরশি মেডিটেশন, এম.এ স্কয়ার হাসপাতাল, মোহাম্মদপুর, সিলেট",
-    phoneNo: "মোবাইলঃ 01738282828 (সকাল ১০টা - ১২টা) লিবি, রহ্ম্মৎ ও শুক্রবার বন্ধ",
-    chamber: "চেম্বার এবিএস ডায়াগনস্টিক সেন্টার",
-    location: "চৌকির পাহাড়, সদর, সিলেট",
-    visitDate: "রোগী দেখার সময়ঃ প্রতি শনি, সোম, মঙ্গল ও বুধবার",
-    visitTime: "বিকাল ৫-৩০থেকে রাত ৮-৩০ পর্যন্ত",
-    advice: "শরীরের ঘয় সাবধান। দীর্ঘায়ু সুস্থ থাকবেন। শরীর সচল রাখুন। অসুখে সম্পূর্ণ বসে থাকবেন না। মেডিকেশন নিয়ন্ত্রণ ০১৮৮১৯৬৬ ৮৯০০০৩০ (দশুর ২টা তারি)",
+    doctorName: "",
+    doctorNameBangla: "",
+    doctorDegree: "",
+    doctorDegreeBangla: "",
+    specialization: "",
+    specializationBangla: "",
+    details: "",
+    phoneNo: "",
+    chamber: "",
+    location: "",
+    visitDate: "",
+    visitTime: "",
+    advice: "",
     leftGrid: "24",
     rightGrid: "27",
   });
 
+  const [isProfileComplete, setIsProfileComplete] = useState(false);
+
   useEffect(() => {
     if (!loading && !isAuthenticated) {
       router.push("/login");
+    } else if (isAuthenticated) {
+      // Load profile from localStorage for this specific user
+      const savedProfile = getDoctorProfile();
+      if (savedProfile) {
+        setFormData(savedProfile);
+        setIsProfileComplete(true);
+      }
     }
   }, [isAuthenticated, loading, router]);
 
@@ -55,9 +65,27 @@ export default function ProfileSettingsPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: Save to backend/localStorage
-    localStorage.setItem("doctorProfile", JSON.stringify(formData));
+
+    // Validate required fields
+    if (!formData.doctorName || !formData.doctorDegree) {
+      toast.error("Please fill in at least Doctor Name and Degree");
+      return;
+    }
+
+    // Save to localStorage for this specific user
+    const saved = saveDoctorProfile(formData);
+    if (!saved) {
+      toast.error("Failed to save profile. Please try again.");
+      return;
+    }
+
+    setIsProfileComplete(true);
     toast.success("Profile updated successfully!");
+
+    // Redirect to dashboard after saving
+    setTimeout(() => {
+      router.push("/dashboard");
+    }, 1000);
   };
 
   return (
@@ -65,16 +93,25 @@ export default function ProfileSettingsPage() {
       {/* Header */}
       <header className="bg-white shadow-sm border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center gap-4">
-          <button
-            onClick={() => router.back()}
-            className="flex items-center gap-2 px-3 py-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors"
-          >
-            <ArrowLeft size={20} />
-            Back
-          </button>
-          <h1 className="text-2xl font-bold text-gray-800">
-            Doctor Information
-          </h1>
+          {isProfileComplete && (
+            <button
+              onClick={() => router.back()}
+              className="flex items-center gap-2 px-3 py-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors"
+            >
+              <ArrowLeft size={20} />
+              Back
+            </button>
+          )}
+          <div>
+            <h1 className="text-2xl font-bold text-gray-800">
+              Doctor Information
+            </h1>
+            {!isProfileComplete && (
+              <p className="text-sm text-red-600 mt-1">
+                Please complete your profile before creating prescriptions
+              </p>
+            )}
+          </div>
         </div>
       </header>
 

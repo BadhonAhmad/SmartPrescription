@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRouter, useParams } from "next/navigation";
 import api from "@/lib/api";
+import { getDoctorProfile, isProfileComplete } from "@/lib/profileUtils";
 import toast from "react-hot-toast";
 import { Save, Printer, Plus, X } from "lucide-react";
 import MedicineSearchModal from "@/components/MedicineSearchModal";
@@ -32,6 +33,8 @@ export default function EditPrescriptionPage() {
   const { isAuthenticated, loading } = useAuth();
   const router = useRouter();
   const params = useParams();
+
+  const [doctorProfile, setDoctorProfile] = useState<any>(null);
 
   // Core form data matching the create template
   const [formData, setFormData] = useState({
@@ -100,6 +103,16 @@ export default function EditPrescriptionPage() {
       router.push("/login");
       return;
     }
+    
+    // Check profile completion
+    if (!isProfileComplete()) {
+      toast.error("Please complete your profile before editing prescriptions");
+      router.push("/profile/settings");
+      return;
+    } else {
+      setDoctorProfile(getDoctorProfile());
+    }
+    
     const idStr = (params?.id as string) || "";
     if (!idStr) return;
 
@@ -337,18 +350,18 @@ export default function EditPrescriptionPage() {
         <div className="max-w-7xl mx-auto px-6 py-3 flex justify-between items-start">
           <div>
             <h1 className="text-xl font-bold text-green-700">
-              DR. ABU NOYIM MOHAMMAD
+              {doctorProfile?.doctorName || "Doctor Name"}
             </h1>
             <p className="text-sm text-gray-700">
-              MBBS, DEM (Endocrinology & Metabolism)
+              {doctorProfile?.doctorDegree || "Degrees"}
             </p>
           </div>
           <div className="text-right">
             <h1 className="text-xl font-bold text-green-700">
-              ডা.আবু নঈম মোহাম্মদ
+              {doctorProfile?.doctorNameBangla || "ডাক্তারের নাম"}
             </h1>
             <p className="text-sm text-gray-700">
-              এমবিবিএস, ডিইএম(এন্ডোক্রাইনোলজি & মেটাবলিজম)
+              {doctorProfile?.doctorDegreeBangla || "ডিগ্রি"}
             </p>
           </div>
         </div>

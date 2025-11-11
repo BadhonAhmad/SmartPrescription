@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRouter, useSearchParams } from "next/navigation";
 import api from "@/lib/api";
+import { getDoctorProfile, isProfileComplete } from "@/lib/profileUtils";
 import toast from "react-hot-toast";
 import { Save, Printer, Plus, X } from "lucide-react";
 import MedicineSearchModal from "@/components/MedicineSearchModal";
@@ -33,6 +34,8 @@ export default function CreatePrescriptionPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
+  const [doctorProfile, setDoctorProfile] = useState<any>(null);
+
   const [formData, setFormData] = useState({
     prescriptionDate: new Date().toISOString().split("T")[0],
     patientName: "",
@@ -57,6 +60,18 @@ export default function CreatePrescriptionPage() {
   const [showAdviceModal, setShowAdviceModal] = useState(false);
 
   const [errors, setErrors] = useState<Errors>({});
+
+  // Check profile completion and redirect if needed
+  useEffect(() => {
+    if (!loading && isAuthenticated) {
+      if (!isProfileComplete()) {
+        toast.error("Please complete your profile before creating prescriptions");
+        router.push("/profile/settings");
+      } else {
+        setDoctorProfile(getDoctorProfile());
+      }
+    }
+  }, [isAuthenticated, loading, router]);
 
   // Pre-fill patient data from URL parameters (when coming from patient profile)
   useEffect(() => {
@@ -256,18 +271,18 @@ export default function CreatePrescriptionPage() {
         <div className="max-w-7xl mx-auto px-6 py-3 flex justify-between items-start">
           <div>
             <h1 className="text-xl font-bold text-green-700">
-              DR. ABU NOYIM MOHAMMAD
+              {doctorProfile?.doctorName || "Doctor Name"}
             </h1>
             <p className="text-sm text-gray-700">
-              MBBS, DEM (Endocrinology & Metabolism)
+              {doctorProfile?.doctorDegree || "Degrees"}
             </p>
           </div>
           <div className="text-right">
             <h1 className="text-xl font-bold text-green-700">
-              ডা.আবু নঈম মোহাম্মদ
+              {doctorProfile?.doctorNameBangla || "ডাক্তারের নাম"}
             </h1>
             <p className="text-sm text-gray-700">
-              এমবিবিএস, ডিইএম(এন্ডোক্রাইনোলজি & মেটাবলিজম)
+              {doctorProfile?.doctorDegreeBangla || "ডিগ্রি"}
             </p>
           </div>
         </div>

@@ -62,8 +62,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } catch (error) {
       console.error('Logout error:', error);
     } finally {
+      // Clear user-specific data
+      const profileKey = username ? `doctorProfile_${username}` : null;
+      
       localStorage.removeItem('token');
       localStorage.removeItem('username');
+      // Note: We keep the profile data for when user logs back in
+      // If you want to clear it: if (profileKey) localStorage.removeItem(profileKey);
+      
       setIsAuthenticated(false);
       setUsername(null);
       toast.success('Logged out successfully');

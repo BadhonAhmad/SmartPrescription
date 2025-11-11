@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import api from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
+import { getDoctorProfile } from "@/lib/profileUtils";
 
 interface Medicine {
   name: string;
@@ -43,6 +44,11 @@ export default function PrescriptionViewPage() {
   const { isAuthenticated, loading } = useAuth();
   const [prescription, setPrescription] = useState<Prescription | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [doctorProfile, setDoctorProfile] = useState<any>(null);
+
+  useEffect(() => {
+    setDoctorProfile(getDoctorProfile());
+  }, []);
 
   useEffect(() => {
     if (!loading && !isAuthenticated) {
@@ -204,7 +210,7 @@ export default function PrescriptionViewPage() {
                   letterSpacing: "0.5px",
                 }}
               >
-                DR. ABU NOYIM MOHAMMAD
+                {doctorProfile?.doctorName || "DOCTOR NAME"}
               </div>
               <div
                 style={{
@@ -213,7 +219,7 @@ export default function PrescriptionViewPage() {
                   fontStyle: "italic",
                 }}
               >
-                MBBS,DEM (Endocrinology & Metabolism)
+                {doctorProfile?.doctorDegree || "Degrees"}
               </div>
             </div>
             <div style={{ textAlign: "right" }}>
@@ -226,7 +232,7 @@ export default function PrescriptionViewPage() {
                   marginBottom: "2px",
                 }}
               >
-                ডা.আবু নঈম মোহাম্মাদ
+                {doctorProfile?.doctorNameBangla || "ডাক্তারের নাম"}
               </div>
               <div
                 style={{
@@ -235,7 +241,7 @@ export default function PrescriptionViewPage() {
                   direction: "rtl",
                 }}
               >
-                এমবিবিএম, ডিইএম(এন্ডোক্রাইনোলজি ও মেটাবলিজম)
+                {doctorProfile?.doctorDegreeBangla || "ডিগ্রি"}
               </div>
             </div>
           </div>
@@ -862,8 +868,10 @@ export default function PrescriptionViewPage() {
         >
           <div style={{ marginBottom: "3px", fontWeight: "500" }}>
             Registered To{" "}
-            <strong style={{ color: "#1f2937" }}>DR. ABU NOYIM MOHAMMAD</strong>{" "}
-            মোবাইলঃ 01914-478747 (সকাল ১০টা - ১২টা রবি, বৃহস্পতি ও তকবার বন্ধ)
+            <strong style={{ color: "#1f2937" }}>
+              {doctorProfile?.doctorName || "DOCTOR NAME"}
+            </strong>{" "}
+            {doctorProfile?.phoneNo || ""}
           </div>
           <div style={{ fontSize: "7px" }}>
             © All rights reserved to SmartClinic
