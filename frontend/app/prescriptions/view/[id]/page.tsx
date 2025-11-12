@@ -122,13 +122,19 @@ export default function PrescriptionViewPage() {
   const histories = parseSectionItems(prescription.history);
   const examinations = parseSectionItems(prescription.onExamination);
   const investigations = parseSectionItems(prescription.investigation);
-  const diagnoses = parseSectionItems(prescription.diagnosis);
+  // Handle diagnosis as either semicolon-separated list or plain text
+  const diagnoses = prescription.diagnosis
+    ? prescription.diagnosis.includes(";")
+      ? parseSectionItems(prescription.diagnosis)
+      : [{ text: prescription.diagnosis, note: "" }]
+    : [];
   const treatments = parseSectionItems(prescription.treatmentPlan);
   const advices = prescription.advice?.split(";").filter((a) => a.trim()) || [];
   const followUps =
     prescription.followUp?.split(";").filter((f) => f.trim()) || [];
   const specialNotes =
     prescription.notes?.split(";").filter((n) => n.trim()) || [];
+  prescription.notes?.split(";").filter((n) => n.trim()) || [];
 
   return (
     <>
@@ -498,22 +504,22 @@ export default function PrescriptionViewPage() {
               </div>
             )}
 
-            {/* Diagnosis */}
-            {diagnoses.length > 0 && (
-              <div>
-                <div
-                  style={{
-                    fontSize: "11px",
-                    fontWeight: "bold",
-                    marginBottom: "5px",
-                    color: "#1f2937",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "4px",
-                  }}
-                >
-                  Diagnosis <span style={{ color: "#10b981" }}>+</span>
-                </div>
+            {/* Diagnosis - Always show with debug info */}
+            <div>
+              <div
+                style={{
+                  fontSize: "11px",
+                  fontWeight: "bold",
+                  marginBottom: "5px",
+                  color: "#1f2937",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "4px",
+                }}
+              >
+                Diagnosis <span style={{ color: "#10b981" }}>+</span>
+              </div>
+              {prescription.diagnosis && prescription.diagnosis.trim() ? (
                 <div style={{ fontSize: "10px", color: "#374151" }}>
                   {diagnoses.map((item, idx) => (
                     <div
@@ -550,8 +556,18 @@ export default function PrescriptionViewPage() {
                     </div>
                   ))}
                 </div>
-              </div>
-            )}
+              ) : (
+                <div
+                  style={{
+                    fontSize: "9px",
+                    color: "#9ca3af",
+                    fontStyle: "italic",
+                  }}
+                >
+                  No diagnosis recorded
+                </div>
+              )}
+            </div>
 
             {/* Treatment Plan */}
             {treatments.length > 0 && (
@@ -862,19 +878,42 @@ export default function PrescriptionViewPage() {
             borderTop: "2px solid #10b981",
             paddingTop: "8px",
             fontSize: "8px",
-            textAlign: "center",
             color: "#6b7280",
           }}
         >
-          <div style={{ marginBottom: "3px", fontWeight: "500" }}>
-            Registered To{" "}
-            <strong style={{ color: "#1f2937" }}>
-              {doctorProfile?.doctorName || "DOCTOR NAME"}
-            </strong>{" "}
-            {doctorProfile?.phoneNo || ""}
-          </div>
-          <div style={{ fontSize: "7px" }}>
-            © All rights reserved to SmartClinic
+          {/* Next Visit Date */}
+          {prescription.nextVisit && (
+            <div
+              style={{
+                textAlign: "left",
+                marginBottom: "6px",
+                fontSize: "9px",
+                fontWeight: "600",
+                color: "#1f2937",
+              }}
+            >
+              Next Visit:{" "}
+              <span style={{ color: "#10b981" }}>
+                {new Date(prescription.nextVisit).toLocaleDateString("en-GB", {
+                  day: "2-digit",
+                  month: "short",
+                  year: "numeric",
+                })}
+              </span>
+            </div>
+          )}
+
+          <div style={{ textAlign: "center" }}>
+            <div style={{ marginBottom: "3px", fontWeight: "500" }}>
+              Registered To{" "}
+              <strong style={{ color: "#1f2937" }}>
+                {doctorProfile?.doctorName || "DOCTOR NAME"}
+              </strong>{" "}
+              {doctorProfile?.phoneNo || ""}
+            </div>
+            <div style={{ fontSize: "7px" }}>
+              © All rights reserved to SmartClinic
+            </div>
           </div>
         </div>
       </div>

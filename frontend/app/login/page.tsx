@@ -93,16 +93,6 @@ export default function LoginPage() {
             Don't have an account? Sign up
           </Link>
         </div>
-
-        <div className="mt-8 pt-6 border-t border-gray-200 text-center text-sm text-gray-600">
-          <p className="font-medium mb-2">Test credentials:</p>
-          <p className="font-mono text-xs bg-gray-50 p-2 rounded">
-            Username: AbuNoyim
-          </p>
-          <p className="font-mono text-xs bg-gray-50 p-2 rounded mt-1">
-            Password: 12345678
-          </p>
-        </div>
       </div>
     </div>
   );

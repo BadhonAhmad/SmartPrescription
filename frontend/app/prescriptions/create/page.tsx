@@ -65,7 +65,9 @@ export default function CreatePrescriptionPage() {
   useEffect(() => {
     if (!loading && isAuthenticated) {
       if (!isProfileComplete()) {
-        toast.error("Please complete your profile before creating prescriptions");
+        toast.error(
+          "Please complete your profile before creating prescriptions"
+        );
         router.push("/profile/settings");
       } else {
         setDoctorProfile(getDoctorProfile());
@@ -75,12 +77,12 @@ export default function CreatePrescriptionPage() {
 
   // Pre-fill patient data from URL parameters (when coming from patient profile)
   useEffect(() => {
-    const patientName = searchParams.get('patientName');
-    const patientAge = searchParams.get('patientAge');
-    const patientId = searchParams.get('patientId');
-    
+    const patientName = searchParams.get("patientName");
+    const patientAge = searchParams.get("patientAge");
+    const patientId = searchParams.get("patientId");
+
     if (patientName || patientAge) {
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
         patientName: patientName || prev.patientName,
         patientAge: patientAge || prev.patientAge,
@@ -196,8 +198,12 @@ export default function CreatePrescriptionPage() {
         patientName: formData.patientName,
         patientAge: Number(formData.patientAge),
         patientGender: formData.patientGender,
+        chiefComplaint: chiefComplaintList.join("; "),
+        history: historyList.join("; "),
+        investigation: investigationList.map((item) => item.name).join("; "),
         diagnosis: formData.diagnosis || "",
         medicines: formatMedicinesForSubmit(),
+        advice: adviceList.join("; "),
         nextVisitDate: formData.nextVisitDate || null,
       };
 
