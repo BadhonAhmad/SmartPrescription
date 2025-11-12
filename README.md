@@ -9,6 +9,19 @@ A comprehensive digital solution for prescription management, patient records, a
 
 ![SmartPrescription Banner](https://via.placeholder.com/1200x400/3B82F6/FFFFFF?text=SmartPrescription+-+Modern+Clinic+Management)
 
+## 🎥 Demo Video
+
+### Watch SmartPrescription in Action
+
+[![SmartPrescription Demo](https://img.youtube.com/vi/kcfUuJgYQJo/maxresdefault.jpg)](https://www.youtube.com/watch?v=kcfUuJgYQJo)
+
+**What you'll see in the demo:**
+- 👨‍⚕️ Complete prescription workflow from patient registration to print
+- 📝 Digital prescription creation with medicine search
+- 📊 Analytics dashboard and reports
+- 👥 Patient management system
+- 🔐 Secure authentication and user management
+
 ## 📋 Table of Contents
 
 - [Features](#-features)
