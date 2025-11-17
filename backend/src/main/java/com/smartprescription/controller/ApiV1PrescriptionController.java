@@ -39,6 +39,20 @@ public class ApiV1PrescriptionController {
     }
 
     /**
+     * GET /API/v1/prescription/{id} - Get prescription by ID
+     */
+    @GetMapping("/prescription/{id}")
+    public ResponseEntity<ApiResponse<PatientVisit>> getPrescriptionById(@PathVariable Long id) {
+        try {
+            PatientVisit prescription = prescriptionService.getPrescriptionById(id);
+            return ResponseEntity.ok(ApiResponse.success(prescription));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest()
+                    .body(ApiResponse.error("Prescription not found: " + e.getMessage()));
+        }
+    }
+
+    /**
      * POST /API/v1/prescription - Create new prescription
      */
     @PostMapping("/prescription")

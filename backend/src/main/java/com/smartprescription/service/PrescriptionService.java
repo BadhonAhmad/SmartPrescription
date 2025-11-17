@@ -1,6 +1,6 @@
 package com.smartprescription.service;
 
-import com.smartprescription.infrastructure.persistence.entity.PatientJpaEntity;
+import com.smartprescription.entity.PatientJpaEntity;
 import com.smartprescription.entity.PatientVisit;
 import com.smartprescription.repository.PatientRepository;
 import com.smartprescription.repository.PatientVisitRepository;
@@ -11,18 +11,15 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * Prescription Service (Legacy - for backward compatibility)
+ * Prescription Service
  * 
  * Manages patient visits and prescriptions:
  * - Create new prescription
  * - Get patient visit history
  * - Update prescription
  * - Search prescriptions
- * 
- * @deprecated Use PrescriptionUseCase instead for new code
  */
 @Service
-@Deprecated
 public class PrescriptionService {
 
     @Autowired

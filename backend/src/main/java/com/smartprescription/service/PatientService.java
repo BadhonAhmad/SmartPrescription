@@ -1,6 +1,6 @@
 package com.smartprescription.service;
 
-import com.smartprescription.infrastructure.persistence.entity.PatientJpaEntity;
+import com.smartprescription.entity.PatientJpaEntity;
 import com.smartprescription.repository.PatientRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -8,17 +8,14 @@ import java.time.LocalDate;
 import java.util.List;
 
 /**
- * Patient Service (Legacy - for backward compatibility)
+ * Patient Service
  * 
  * Business logic for patient management:
  * - Create, read, update, delete patients
  * - Search patients by name or phone
  * - Get patient list with pagination
- * 
- * @deprecated Use PatientUseCase instead for new code
  */
 @Service
-@Deprecated
 public class PatientService {
 
     @Autowired

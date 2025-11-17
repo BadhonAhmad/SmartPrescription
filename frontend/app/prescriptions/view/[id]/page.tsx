@@ -64,7 +64,7 @@ export default function PrescriptionViewPage() {
 
   const fetchPrescription = async () => {
     try {
-      const response = await api.get(`/prescriptions/${params.id}`);
+      const response = await api.get(`/API/v1/prescription/${params.id}`);
       setPrescription(response.data.data);
     } catch (error) {
       console.error("Error fetching prescription:", error);

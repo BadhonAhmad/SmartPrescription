@@ -1,9 +1,9 @@
-package com.smartprescription.infrastructure.web.dto;
+package com.smartprescription.dto;
 
 import java.time.LocalDate;
 
 /**
- * Patient Response DTO (Clean Architecture - Infrastructure Web Layer)
+ * Patient Response DTO
  * 
  * Data Transfer Object for Patient API responses.
  */

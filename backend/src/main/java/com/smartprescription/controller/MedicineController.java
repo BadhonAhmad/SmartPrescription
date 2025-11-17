@@ -1,10 +1,10 @@
 package com.smartprescription.controller;
 
-import com.smartprescription.application.port.input.MedicineUseCase;
-import com.smartprescription.domain.model.Medicine;
+import com.smartprescription.service.MedicineService;
+import com.smartprescription.entity.Medicine;
 import com.smartprescription.dto.ApiResponse;
-import com.smartprescription.infrastructure.web.dto.MedicineResponseDto;
-import com.smartprescription.infrastructure.web.mapper.MedicineWebMapper;
+import com.smartprescription.dto.MedicineResponseDto;
+import com.smartprescription.dto.MedicineMapper;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -12,9 +12,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * Medicine Controller (Clean Architecture - Infrastructure Web Layer)
- * 
- * REST API adapter that depends on use case interfaces.
+ * Medicine Controller (Layered Architecture)
  * 
  * REST endpoints for medicine management:
  * GET /medicines - Get all medicines
@@ -29,17 +27,17 @@ import java.util.stream.Collectors;
 @CrossOrigin(origins = "*")
 public class MedicineController {
 
-    private final MedicineUseCase medicineUseCase;
-    private final MedicineWebMapper mapper;
+    private final MedicineService medicineService;
+    private final MedicineMapper mapper;
 
-    public MedicineController(MedicineUseCase medicineUseCase, MedicineWebMapper mapper) {
-        this.medicineUseCase = medicineUseCase;
+    public MedicineController(MedicineService medicineService, MedicineMapper mapper) {
+        this.medicineService = medicineService;
         this.mapper = mapper;
     }
 
     @GetMapping
     public ResponseEntity<ApiResponse<List<MedicineResponseDto>>> getAllMedicines() {
-        List<Medicine> medicines = medicineUseCase.getAllMedicines();
+        List<Medicine> medicines = medicineService.getAllMedicines();
         List<MedicineResponseDto> dtos = medicines.stream()
                 .map(mapper::toDto)
                 .collect(Collectors.toList());
@@ -49,7 +47,7 @@ public class MedicineController {
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<MedicineResponseDto>> getMedicineById(@PathVariable Long id) {
         try {
-            Medicine medicine = medicineUseCase.getMedicineById(id);
+            Medicine medicine = medicineService.getMedicineById(id);
             MedicineResponseDto dto = mapper.toDto(medicine);
             return ResponseEntity.ok(ApiResponse.success(dto));
         } catch (Exception e) {
@@ -61,8 +59,8 @@ public class MedicineController {
     @PostMapping
     public ResponseEntity<ApiResponse<MedicineResponseDto>> createMedicine(
             @RequestBody MedicineResponseDto requestDto) {
-        Medicine medicine = mapper.toDomain(requestDto);
-        Medicine created = medicineUseCase.createMedicine(medicine);
+        Medicine medicine = mapper.toEntity(requestDto);
+        Medicine created = medicineService.createMedicine(medicine);
         MedicineResponseDto responseDto = mapper.toDto(created);
         return ResponseEntity.ok(ApiResponse.success("Medicine created successfully", responseDto));
     }
@@ -72,8 +70,8 @@ public class MedicineController {
             @PathVariable Long id,
             @RequestBody MedicineResponseDto requestDto) {
         try {
-            Medicine medicine = mapper.toDomain(requestDto);
-            Medicine updated = medicineUseCase.updateMedicine(id, medicine);
+            Medicine medicine = mapper.toEntity(requestDto);
+            Medicine updated = medicineService.updateMedicine(id, medicine);
             MedicineResponseDto responseDto = mapper.toDto(updated);
             return ResponseEntity.ok(ApiResponse.success("Medicine updated successfully", responseDto));
         } catch (Exception e) {
@@ -85,7 +83,7 @@ public class MedicineController {
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<String>> deleteMedicine(@PathVariable Long id) {
         try {
-            medicineUseCase.deleteMedicine(id);
+            medicineService.deleteMedicine(id);
             return ResponseEntity.ok(ApiResponse.success("Medicine deleted successfully", null));
         } catch (Exception e) {
             return ResponseEntity.badRequest()
@@ -95,7 +93,7 @@ public class MedicineController {
 
     @GetMapping("/search")
     public ResponseEntity<ApiResponse<List<MedicineResponseDto>>> searchMedicines(@RequestParam String q) {
-        List<Medicine> medicines = medicineUseCase.searchMedicines(q);
+        List<Medicine> medicines = medicineService.searchMedicines(q);
         List<MedicineResponseDto> dtos = medicines.stream()
                 .map(mapper::toDto)
                 .collect(Collectors.toList());

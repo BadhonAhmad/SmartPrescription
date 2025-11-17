@@ -1,10 +1,10 @@
 package com.smartprescription.controller;
 
-import com.smartprescription.application.port.input.PatientUseCase;
-import com.smartprescription.domain.model.Patient;
+import com.smartprescription.service.PatientService;
 import com.smartprescription.dto.ApiResponse;
-import com.smartprescription.infrastructure.web.dto.PatientResponseDto;
-import com.smartprescription.infrastructure.web.mapper.PatientWebMapper;
+import com.smartprescription.dto.PatientResponseDto;
+import com.smartprescription.dto.PatientMapper;
+import com.smartprescription.entity.PatientJpaEntity;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -12,9 +12,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * Patient Controller (Clean Architecture - Infrastructure Web Layer)
- * 
- * REST API adapter that depends on use case interfaces.
+ * Patient Controller (Layered Architecture)
  * 
  * REST endpoints for patient management:
  * GET /patients - Get all patients
@@ -29,17 +27,17 @@ import java.util.stream.Collectors;
 @CrossOrigin(origins = "*")
 public class PatientController {
 
-    private final PatientUseCase patientUseCase;
-    private final PatientWebMapper mapper;
+    private final PatientService patientService;
+    private final PatientMapper mapper;
 
-    public PatientController(PatientUseCase patientUseCase, PatientWebMapper mapper) {
-        this.patientUseCase = patientUseCase;
+    public PatientController(PatientService patientService, PatientMapper mapper) {
+        this.patientService = patientService;
         this.mapper = mapper;
     }
 
     @GetMapping
     public ResponseEntity<ApiResponse<List<PatientResponseDto>>> getAllPatients() {
-        List<Patient> patients = patientUseCase.getAllPatients();
+        List<PatientJpaEntity> patients = patientService.getAllPatients();
         List<PatientResponseDto> dtos = patients.stream()
                 .map(mapper::toDto)
                 .collect(Collectors.toList());
@@ -49,7 +47,7 @@ public class PatientController {
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<PatientResponseDto>> getPatientById(@PathVariable Long id) {
         try {
-            Patient patient = patientUseCase.getPatientById(id);
+            PatientJpaEntity patient = patientService.getPatientById(id);
             PatientResponseDto dto = mapper.toDto(patient);
             return ResponseEntity.ok(ApiResponse.success(dto));
         } catch (Exception e) {
@@ -60,8 +58,8 @@ public class PatientController {
 
     @PostMapping
     public ResponseEntity<ApiResponse<PatientResponseDto>> createPatient(@RequestBody PatientResponseDto requestDto) {
-        Patient patient = mapper.toDomain(requestDto);
-        Patient created = patientUseCase.createPatient(patient);
+        PatientJpaEntity patient = mapper.toEntity(requestDto);
+        PatientJpaEntity created = patientService.createPatient(patient);
         PatientResponseDto responseDto = mapper.toDto(created);
         return ResponseEntity.ok(ApiResponse.success("Patient created successfully", responseDto));
     }
@@ -71,8 +69,8 @@ public class PatientController {
             @PathVariable Long id,
             @RequestBody PatientResponseDto requestDto) {
         try {
-            Patient patient = mapper.toDomain(requestDto);
-            Patient updated = patientUseCase.updatePatient(id, patient);
+            PatientJpaEntity patient = mapper.toEntity(requestDto);
+            PatientJpaEntity updated = patientService.updatePatient(id, patient);
             PatientResponseDto responseDto = mapper.toDto(updated);
             return ResponseEntity.ok(ApiResponse.success("Patient updated successfully", responseDto));
         } catch (Exception e) {
@@ -84,7 +82,7 @@ public class PatientController {
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<String>> deletePatient(@PathVariable Long id) {
         try {
-            patientUseCase.deletePatient(id);
+            patientService.deletePatient(id);
             return ResponseEntity.ok(ApiResponse.success("Patient deleted successfully", null));
         } catch (Exception e) {
             return ResponseEntity.badRequest()
@@ -93,14 +91,16 @@ public class PatientController {
     }
 
     @GetMapping("/search")
-    public ResponseEntity<ApiResponse<PatientResponseDto>> searchPatientByName(@RequestParam String name) {
+    public ResponseEntity<ApiResponse<List<PatientResponseDto>>> searchPatientByName(@RequestParam String name) {
         try {
-            Patient patient = patientUseCase.getPatientByName(name);
-            PatientResponseDto dto = mapper.toDto(patient);
-            return ResponseEntity.ok(ApiResponse.success(dto));
+            List<PatientJpaEntity> patients = patientService.searchPatientsByName(name);
+            List<PatientResponseDto> dtos = patients.stream()
+                    .map(mapper::toDto)
+                    .collect(Collectors.toList());
+            return ResponseEntity.ok(ApiResponse.success(dtos));
         } catch (Exception e) {
             return ResponseEntity.badRequest()
-                    .body(ApiResponse.error("Patient not found: " + e.getMessage()));
+                    .body(ApiResponse.error("Search failed: " + e.getMessage()));
         }
     }
 }

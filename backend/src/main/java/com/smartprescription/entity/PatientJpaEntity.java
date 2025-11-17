@@ -1,4 +1,4 @@
-package com.smartprescription.infrastructure.persistence.entity;
+package com.smartprescription.entity;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -7,10 +7,9 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDate;
 
 /**
- * Patient JPA Entity (Clean Architecture - Infrastructure Layer)
+ * Patient Entity
  * 
  * JPA entity for persisting patient data to database.
- * This is separate from the domain model to keep domain layer clean.
  * 
  * Fields:
  * - id: Auto-generated patient ID

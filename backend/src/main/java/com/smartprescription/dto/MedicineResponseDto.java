@@ -1,7 +1,7 @@
-package com.smartprescription.infrastructure.web.dto;
+package com.smartprescription.dto;
 
 /**
- * Medicine Response DTO (Clean Architecture - Infrastructure Web Layer)
+ * Medicine Response DTO
  * 
  * Data Transfer Object for Medicine API responses.
  */
@@ -13,6 +13,7 @@ public class MedicineResponseDto {
     private String genericName;
     private String strength;
     private String type;
+    private String dosageDescription;
     private Integer occurrence;
 
     // Constructors
@@ -66,6 +67,14 @@ public class MedicineResponseDto {
 
     public void setType(String type) {
         this.type = type;
+    }
+
+    public String getDosageDescription() {
+        return dosageDescription;
+    }
+
+    public void setDosageDescription(String dosageDescription) {
+        this.dosageDescription = dosageDescription;
     }
 
     public Integer getOccurrence() {
